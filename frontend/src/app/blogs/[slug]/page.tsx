@@ -1,9 +1,9 @@
 // app/blogs/[slug]/page.tsx.
 "use client";
-import { useEffect, useState } from "react";
-import { getPostBySlug } from "../../../lib/api"; // Import your API function
+import { useEffect, useState, use } from "react";
+import { getPostBySlug } from "../../../../lib/api"; // Import your API function
 import { useRouter } from "next/navigation";
-import { BlogPost } from "@/../../lib/types";
+import { BlogPost } from "@/../lib/types";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
@@ -22,8 +22,8 @@ const handleCopyCode = async (code: string) => {
   }
 };
 
-const BlogPostPage = ({ params }: { params: { slug: string } }) => {
-  const { slug } = params;
+const BlogPostPage = ({ params }: { params: Promise<{ slug: string }> }) => {
+  const { slug } = use(params);
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,27 +97,27 @@ const BlogPostPage = ({ params }: { params: { slug: string } }) => {
           remarkPlugins={[remarkGfm]}
           rehypePlugins={[rehypeRaw]}
           components={{
-          code({ inline, className, children, ...props }: any) {
-            const match = /language-(\w+)/.exec(className || "");
-            const codeString = String(children).replace(/\n$/, "");
+            code({ inline, className, children, ...props }: any) {
+              const match = /language-(\w+)/.exec(className || "");
+              const codeString = String(children).replace(/\n$/, "");
 
-            return !inline && match ? (
-              <div className="relative">
-                <button
-                  onClick={() => handleCopyCode(codeString)}
-                  className="absolute top-2 right-2 bg-gray-700 text-white p-1 rounded-md hover:bg-gray-600"
-                  title="Copy to clipboard"
-                >
-                  <FaClipboard color="#fff" />
-                </button>
-              </div>
-            ) : (
-              <code className={className} {...props}>
-                {children}
-              </code>
-            );
-          },
-        }}
+              return !inline && match ? (
+                <div className="relative">
+                  <button
+                    onClick={() => handleCopyCode(codeString)}
+                    className="absolute top-2 right-2 bg-gray-700 text-white p-1 rounded-md hover:bg-gray-600"
+                    title="Copy to clipboard"
+                  >
+                    <FaClipboard color="#fff" />
+                  </button>
+                </div>
+              ) : (
+                <code className={className} {...props}>
+                  {children}
+                </code>
+              );
+            },
+          }}
         >
           {post.content}
         </Markdown>

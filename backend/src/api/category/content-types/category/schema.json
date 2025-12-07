@@ -11,13 +11,13 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "Name": {
+    "name": {
       "type": "string"
     },
-    "Slug": {
+    "slug": {
       "type": "uid"
     },
-    "Description": {
+    "description": {
       "type": "string"
     },
     "blogs": {

@@ -11,16 +11,16 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "Title": {
+    "title": {
       "type": "string"
     },
-    "Description": {
+    "description": {
       "type": "text"
     },
-    "Content": {
+    "content": {
       "type": "richtext"
     },
-    "Cover": {
+    "cover": {
       "type": "media",
       "multiple": false,
       "allowedTypes": [
@@ -35,6 +35,9 @@
       "relation": "manyToMany",
       "target": "api::category.category",
       "mappedBy": "blogs"
+    },
+    "slug": {
+      "type": "uid"
     }
   }
 }

@@ -23,17 +23,17 @@ const Navbar = () => {
   };
 
   return (
-    <div className="max-w-screen-lg mx-auto sticky top-0 bg-inherit py-3 sm:py-6 z-50  ">
-      <nav className="flex justify-between items-center mb-2 p-4 ">
+    <div className="w-full sticky top-0 bg-[#1B3F6A] py-3 sm:py-6 z-50">
+      <nav className="max-w-screen-lg mx-auto flex justify-between items-center mb-2 px-4">
         <div className="flex items-center gap-4">
           <Link href="/">
-            <h1 className="font-bold text-xl text-purple-600 font-jet-brains">
-              DEV.BLOG
+            <h1 className="font-bold text-xl text-white-600 font-jet-brains">
+              FF Content Hub
             </h1>
           </Link>
           <button
             onClick={() => setSearchOpen((prev) => !prev)}
-            className="text-xl text-white hover:text-purple-400 transition-colors"
+            className="text-xl text-white hover:text-white-400 transition-colors"
           >
             {searchOpen ? <FaTimes /> : <FaSearch />}
           </button>
@@ -51,7 +51,7 @@ const Navbar = () => {
               />
               <button
                 onClick={handleSearchSubmit}
-                className="bg-purple-600 text-sm hover:bg-purple-500 text-white px-2 py-1 rounded-md transition-colors"
+                className="bg-white-600 text-sm hover:bg-white-500 text-white px-2 py-1 rounded-md transition-colors"
               >
                 Search
               </button>
@@ -63,8 +63,8 @@ const Navbar = () => {
           <li
             className={
               pathname === "/"
-                ? "text-purple-400"
-                : "text-white hover:text-purple-400"
+                ? "text-white-400"
+                : "text-white hover:text-white-400"
             }
           >
             <Link href="/">Blogs</Link>
@@ -72,12 +72,12 @@ const Navbar = () => {
           <li
             className={
               pathname === "/write"
-                ? "text-purple-400"
-                : "text-white hover:text-purple-400"
+                ? "text-white-400"
+                : "text-white hover:text-white-400"
             }
           >
             <Link href="/write">
-              <FaPen className="hover:text-purple-400" />
+              <FaPen className="hover:text-white-400" />
             </Link>
           </li>
         </ul>

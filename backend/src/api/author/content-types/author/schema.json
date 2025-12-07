@@ -11,10 +11,10 @@
   },
   "pluginOptions": {},
   "attributes": {
-    "Name": {
+    "name": {
       "type": "string"
     },
-    "Avatar": {
+    "avatar": {
       "type": "media",
       "multiple": false,
       "allowedTypes": [
@@ -24,7 +24,7 @@
         "audios"
       ]
     },
-    "Email": {
+    "email": {
       "type": "string"
     },
     "blogs": {
