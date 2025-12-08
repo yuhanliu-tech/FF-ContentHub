@@ -67,7 +67,7 @@ const Navbar = () => {
                 : "text-white hover:text-white-400"
             }
           >
-            <Link href="/">Blogs</Link>
+            <Link href="/">Home</Link>
           </li>
           <li
             className={

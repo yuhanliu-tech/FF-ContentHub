@@ -4,13 +4,13 @@
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getAllPosts } from "../../lib/api";
-import { BlogPost } from "@/../lib/types";
+import { getAllTiles } from "../../lib/api";
+import { Tile } from "@/../lib/types";
 import Loader from "@/components/Loader";
 import Pagination from "@/components/Pagination";
 
 export default function Home() {
-  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [tiles, setTiles] = useState<Tile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1); // Track total number of pages
@@ -24,20 +24,20 @@ export default function Home() {
   const currentPage = pageParam ? parseInt(pageParam) : 1; // Default to page 1 if not present
 
   useEffect(() => {
-    const fetchPosts = async (page: number) => {
+    const fetchTiles = async (page: number) => {
       try {
-        const { posts, pagination } = await getAllPosts(page, searchQuery);
-        setPosts(posts);
+        const { tiles, pagination } = await getAllTiles(page, searchQuery);
+        setTiles(tiles);
         setTotalPages(pagination.pageCount); // Set total pages
       } catch (error) {
-        setError("Error fetching posts.");
-        console.error("Error fetching posts:", error);
+        setError("Error fetching tiles.");
+        console.error("Error fetching tiles:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchPosts(currentPage);
+    fetchTiles(currentPage);
   }, [currentPage, searchQuery]); // Re-fetch when page or search query changes
 
   const handlePageChange = (newPage: number) => {
@@ -60,35 +60,35 @@ export default function Home() {
       {!loading && !error && (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.length > 0 ? (
-              posts.map((post) => (
+            {tiles.length > 0 ? (
+              tiles.map((tile) => (
                 <div
-                  key={post.id}
+                  key={tile.id}
                   className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
                 >
-                  <Link href={`/blogs/${post.slug}`} className="block">
-                    {post.cover?.url && (
+                  <Link href={`/tiles/${tile.slug}`} className="block">
+                    {tile.cover?.url && (
                       <div className="relative h-36 w-full">
                         <img
-                          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${post.cover.url}`}
-                          alt={post.title}
+                          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${tile.cover.url}`}
+                          alt={tile.title}
                           className="w-full h-full object-cover"
                         />
                       </div>
                     )}
                     <div className="p-4">
                       <h2 className="text-lg font-semibold font-jet-brains text-white line-clamp-2">
-                        {post.title}
+                        {tile.title}
                       </h2>
                       <p className="text-gray-400 mt-2 text-sm leading-6 line-clamp-3">
-                        {post.description}
+                        {tile.description}
                       </p>
                     </div>
                   </Link>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400">No posts available at the moment.</p>
+              <p className="text-gray-400">No tiles available at the moment.</p>
             )}
           </div>
 
