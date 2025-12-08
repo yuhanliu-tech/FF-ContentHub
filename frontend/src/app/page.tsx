@@ -83,9 +83,6 @@ export default function Home() {
                       <p className="text-gray-400 mt-2 text-sm leading-6 line-clamp-3">
                         {post.description}
                       </p>
-                      <p className="text-purple-400 text-sm mt-4 inline-block font-medium hover:underline">
-                        Read More
-                      </p>
                     </div>
                   </Link>
                 </div>

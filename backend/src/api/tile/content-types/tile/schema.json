@@ -1,0 +1,46 @@
+{
+  "kind": "collectionType",
+  "collectionName": "Tile",
+  "info": {
+    "singularName": "tile",
+    "pluralName": "tiles",
+    "displayName": "Tile"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "slug": {
+      "type": "uid",
+      "required": true
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "description": {
+      "type": "text"
+    },
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "link": {
+      "type": "string"
+    },
+    "content": {
+      "type": "dynamiczone",
+      "components": [
+        "content.page-content"
+      ]
+    }
+  }
+}

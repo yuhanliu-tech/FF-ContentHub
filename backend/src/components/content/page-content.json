@@ -1,0 +1,16 @@
+{
+  "collectionName": "components_content_page_contents",
+  "info": {
+    "displayName": "page-content",
+    "icon": "file"
+  },
+  "options": {},
+  "attributes": {
+    "list_items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list-item.list-item"
+    }
+  },
+  "config": {}
+}

@@ -1,0 +1,35 @@
+{
+  "kind": "collectionType",
+  "collectionName": "list_items",
+  "info": {
+    "singularName": "list-item",
+    "pluralName": "list-items",
+    "displayName": "List-Item"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "date": {
+      "type": "date"
+    },
+    "link": {
+      "type": "string"
+    },
+    "attachment": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    }
+  }
+}
