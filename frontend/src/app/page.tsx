@@ -89,6 +89,9 @@ export default function Home() {
             </div>
           )}
 
+          {/* Horizontal line separator */}
+          <div className="w-full h-px bg-brand-orange mb-12"></div>
+
           {/* Tools Section */}
           {toolTiles.length > 0 && (
             <div className="mb-12">

@@ -12,9 +12,9 @@ export const getAllTiles = async (searchQuery: string = "") => {
     const searchFilter = searchQuery
       ? `&filters[title][$containsi]=${searchQuery}`
       : ""; // Search filter with the title
-    // Fetch all tiles and populate the required fields including nested list_items
+    // Fetch all tiles and populate the required fields including nested list_items and docs
     const response = await api.get(
-      `api/tiles?populate[0]=cover&populate[1]=list_items.attachment&populate[2]=content${searchFilter}`
+      `api/tiles?populate[0]=cover&populate[1]=list_items.attachment&populate[2]=docs${searchFilter}`
     );
     return {
       tiles: response.data.data,
@@ -29,7 +29,7 @@ export const getAllTiles = async (searchQuery: string = "") => {
 export const getTileBySlug = async (slug: string) => {
   try {
     const response = await api.get(
-      `api/tiles?filters[slug]=${slug}&populate[0]=cover&populate[1]=list_items.attachment&populate[2]=content`
+      `api/tiles?filters[slug]=${slug}&populate[0]=cover&populate[1]=list_items.attachment&populate[2]=docs`
     ); // Fetch a single tile using the slug parameter with proper nested population
     if (response.data.data.length > 0) {
       // If tile exists

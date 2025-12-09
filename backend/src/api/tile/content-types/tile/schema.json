@@ -49,11 +49,10 @@
       "relation": "oneToMany",
       "target": "api::list-item.list-item"
     },
-    "content": {
-      "type": "dynamiczone",
-      "components": [
-        "content.page-content"
-      ]
+    "docs": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::doc.doc"
     }
   }
 }

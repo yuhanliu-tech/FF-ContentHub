@@ -430,6 +430,33 @@ export interface AdminUser extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiDocDoc extends Struct.CollectionTypeSchema {
+  collectionName: 'docs';
+  info: {
+    displayName: 'Doc';
+    pluralName: 'docs';
+    singularName: 'doc';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    content: Schema.Attribute.RichText & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<'oneToMany', 'api::doc.doc'> &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    slug: Schema.Attribute.UID & Schema.Attribute.Required;
+    subtitle: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiHomepageHeroHomepageHero extends Struct.SingleTypeSchema {
   collectionName: 'homepage_heroes';
   info: {
@@ -533,13 +560,13 @@ export interface ApiTileTile extends Struct.CollectionTypeSchema {
   attributes: {
     category: Schema.Attribute.Enumeration<['archive', 'tool']> &
       Schema.Attribute.Required;
-    content: Schema.Attribute.DynamicZone<['content.page-content']>;
     cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'> &
       Schema.Attribute.Required;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
+    docs: Schema.Attribute.Relation<'oneToMany', 'api::doc.doc'>;
     link: Schema.Attribute.String;
     list_items: Schema.Attribute.Relation<
       'oneToMany',
@@ -1067,6 +1094,7 @@ declare module '@strapi/strapi' {
       'admin::transfer-token': AdminTransferToken;
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
+      'api::doc.doc': ApiDocDoc;
       'api::homepage-hero.homepage-hero': ApiHomepageHeroHomepageHero;
       'api::list-item.list-item': ApiListItemListItem;
       'api::logo.logo': ApiLogoLogo;
