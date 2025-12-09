@@ -1,16 +1,33 @@
 // src/components/Navbar.tsx
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FaPen, FaSearch, FaTimes } from "react-icons/fa";
 import { useSearchParams, usePathname, useRouter } from "next/navigation";
+import { getLogo } from "../../lib/api";
+import { Logo } from "../../lib/types";
 
 const Navbar = () => {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [logo, setLogo] = useState<Logo | null>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname(); // Get the current route path
   const { replace } = useRouter(); // Next js function to replace routes
+
+  // Fetch logo on component mount
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const logoData = await getLogo();
+        setLogo(logoData);
+      } catch (error) {
+        console.error("Error fetching logo:", error);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   // Handle search query submission
   const handleSearchSubmit = () => {
@@ -23,64 +40,22 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full sticky top-0 bg-[#1B3F6A] py-3 sm:py-6 z-50">
+    <div className="w-full sticky top-0 bg-brand-blue py-3 sm:py-6 z-50">
       <nav className="max-w-screen-lg mx-auto flex justify-between items-center mb-2 px-4">
         <div className="flex items-center gap-4">
-          <Link href="/">
-            <h1 className="font-bold text-xl text-white-600 font-jet-brains">
-              FF Content Hub
+          <Link href="/" className="flex items-center gap-3">
+            {logo && logo.logo && logo.logo.length > 0 && (
+              <img
+                src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${logo.logo[0].url}`}
+                alt="FF Content Hub Logo"
+                className="h-8 w-auto"
+              />
+            )}
+            <h1 className="font-bold text-xl text-white-600 font-poppins">
+              Content Hub
             </h1>
           </Link>
-          <button
-            onClick={() => setSearchOpen((prev) => !prev)}
-            className="text-xl text-white hover:text-white-400 transition-colors"
-          >
-            {searchOpen ? <FaTimes /> : <FaSearch />}
-          </button>
-
-          {/* Search Box (toggles visibility) */}
-          {searchOpen && (
-            <div className="ml-4 flex items-center gap-2">
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search posts..."
-                defaultValue={searchParams.get("search")?.toString()}
-                className="bg-gray-800 appearance-none placeholder:text-sm placeholder:font-normal text-sm text-white placeholder-gray-400 border-b-2 border-purple-500 focus:border-purple-300 outline-none px-2 py-1 rounded-md"
-              />
-              <button
-                onClick={handleSearchSubmit}
-                className="bg-white-600 text-sm hover:bg-white-500 text-white px-2 py-1 rounded-md transition-colors"
-              >
-                Search
-              </button>
-            </div>
-          )}
         </div>
-
-        <ul className="flex items-center gap-6 font-medium transition-colors font-jet-brains">
-          <li
-            className={
-              pathname === "/"
-                ? "text-white-400"
-                : "text-white hover:text-white-400"
-            }
-          >
-            <Link href="/">Home</Link>
-          </li>
-          <li
-            className={
-              pathname === "/write"
-                ? "text-white-400"
-                : "text-white hover:text-white-400"
-            }
-          >
-            <Link href="/write">
-              <FaPen className="hover:text-white-400" />
-            </Link>
-          </li>
-        </ul>
       </nav>
     </div>
   );

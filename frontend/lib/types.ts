@@ -26,4 +26,22 @@ export interface Tile {
   cover: ImageData; // Featured image for the tile
   link: string; // External or internal link
   list_items?: ListItem[]; // Direct list items on the tile
+  category: "archive" | "tool"; // Category enumeration
+}
+
+export interface HomepageHero {
+  id: number;
+  cover?: ImageData;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface Logo {
+  id: number;
+  logo?: ImageData[];
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }

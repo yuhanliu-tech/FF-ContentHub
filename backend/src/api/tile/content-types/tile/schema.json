@@ -15,6 +15,14 @@
       "type": "uid",
       "required": true
     },
+    "category": {
+      "type": "enumeration",
+      "required": true,
+      "enum": [
+        "archive",
+        "tool"
+      ]
+    },
     "title": {
       "type": "string",
       "required": true
@@ -36,16 +44,16 @@
     "link": {
       "type": "string"
     },
+    "list_items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list-item.list-item"
+    },
     "content": {
       "type": "dynamiczone",
       "components": [
         "content.page-content"
       ]
-    },
-    "list_items": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::list-item.list-item"
     }
   }
 }

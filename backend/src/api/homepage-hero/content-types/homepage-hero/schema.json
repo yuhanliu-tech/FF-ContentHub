@@ -1,0 +1,28 @@
+{
+  "kind": "singleType",
+  "collectionName": "homepage_heroes",
+  "info": {
+    "singularName": "homepage-hero",
+    "pluralName": "homepage-heroes",
+    "displayName": "Homepage-Hero"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "cover": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "description": {
+      "type": "text"
+    }
+  }
+}

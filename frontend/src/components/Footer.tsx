@@ -6,18 +6,16 @@ import Link from "next/link";
 
 const Footer = () => {
   return (
-    <footer className="w-full bg-[#1B3F6A] py-6 mt-12">
+    <footer className="w-full bg-brand-blue py-6 mt-12">
       <div className="max-w-screen-lg mx-auto px-4 flex justify-between items-center">
 
         {/* Left side */}
-        <Link href="/">
-          <h1 className="font-bold text-lg text-white font-jet-brains">
-            FF Content Hub
-          </h1>
-        </Link>
+        <h3 className="font-regular text-lg text-white font-poppins">
+            Copyright 2025 Feedforward
+          </h3>
 
         {/* Right side menu */}
-        <ul className="flex items-center gap-6 text-white font-jet-brains text-sm">
+        <ul className="flex items-center gap-6 text-white font-inter text-sm">
           <li className="hover:text-white/70 transition-colors">
             <Link href="/docs">Docs</Link>
           </li>
