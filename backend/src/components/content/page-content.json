@@ -6,10 +6,8 @@
   },
   "options": {},
   "attributes": {
-    "list_items": {
-      "type": "relation",
-      "relation": "oneToMany",
-      "target": "api::list-item.list-item"
+    "words": {
+      "type": "richtext"
     }
   },
   "config": {}

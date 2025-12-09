@@ -7,7 +7,7 @@ const Loader = () => {
       visible={true}
       height="150"
       width="150"
-      color="#7e22ce"
+      color="#eaa059"
       ariaLabel="line-wave-loading"
       wrapperStyle={{}}
     />

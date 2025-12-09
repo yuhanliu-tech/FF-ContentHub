@@ -482,6 +482,10 @@ export interface ApiTileTile extends Struct.CollectionTypeSchema {
       Schema.Attribute.Private;
     description: Schema.Attribute.Text;
     link: Schema.Attribute.String;
+    list_items: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::list-item.list-item'
+    >;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<'oneToMany', 'api::tile.tile'> &
       Schema.Attribute.Private;

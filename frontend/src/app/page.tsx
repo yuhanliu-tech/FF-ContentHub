@@ -3,32 +3,26 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Link from "next/link";
 import { getAllTiles } from "../../lib/api";
 import { Tile } from "@/../lib/types";
 import Loader from "@/components/Loader";
-import Pagination from "@/components/Pagination";
 
 export default function Home() {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totalPages, setTotalPages] = useState(1); // Track total number of pages
 
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get the search query and page from the URL params
+  // Get the search query from URL params
   const searchQuery = searchParams.get("search") ?? "";
-  const pageParam = searchParams.get("page");
-  const currentPage = pageParam ? parseInt(pageParam) : 1; // Default to page 1 if not present
 
   useEffect(() => {
-    const fetchTiles = async (page: number) => {
+    const fetchTiles = async () => {
       try {
-        const { tiles, pagination } = await getAllTiles(page, searchQuery);
+        const { tiles } = await getAllTiles(searchQuery);
         setTiles(tiles);
-        setTotalPages(pagination.pageCount); // Set total pages
       } catch (error) {
         setError("Error fetching tiles.");
         console.error("Error fetching tiles:", error);
@@ -37,15 +31,17 @@ export default function Home() {
       }
     };
 
-    fetchTiles(currentPage);
-  }, [currentPage, searchQuery]); // Re-fetch when page or search query changes
+    fetchTiles();
+  }, [searchQuery]); // Re-fetch when search query changes
 
-  const handlePageChange = (newPage: number) => {
-    // Update the page parameter in the URL
-    const newParams = new URLSearchParams(searchParams.toString());
-    newParams.set("page", newPage.toString());
-    router.push(`?${newParams.toString()}`);
-    setLoading(true); // Show loader while fetching
+  const handleTileClick = (tile: Tile) => {
+    // If tile has an external link, navigate to it in the current tab
+    if (tile.link && tile.link.trim() !== "") {
+      window.location.href = tile.link;
+    } else {
+      // Navigate to the tile detail page
+      router.push(`/tiles/${tile.slug}`);
+    }
   };
 
   return (
@@ -64,9 +60,10 @@ export default function Home() {
               tiles.map((tile) => (
                 <div
                   key={tile.id}
-                  className="cursor-pointer bg-gray-900 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  className="cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+                  onClick={() => handleTileClick(tile)}
                 >
-                  <Link href={`/tiles/${tile.slug}`} className="block">
+                  <div className="block">
                     {tile.cover?.url && (
                       <div className="relative h-36 w-full">
                         <img
@@ -77,27 +74,20 @@ export default function Home() {
                       </div>
                     )}
                     <div className="p-4">
-                      <h2 className="text-lg font-semibold font-jet-brains text-white line-clamp-2">
+                      <h2 className="text-lg font-semibold font-jet-brains text-black line-clamp-2">
                         {tile.title}
                       </h2>
-                      <p className="text-gray-400 mt-2 text-sm leading-6 line-clamp-3">
+                      <p className="text-gray-600 mt-2 text-sm leading-6 line-clamp-3">
                         {tile.description}
                       </p>
                     </div>
-                  </Link>
+                  </div>
                 </div>
               ))
             ) : (
-              <p className="text-gray-400">No tiles available at the moment.</p>
+              <p className="text-gray-600">No tiles available at the moment.</p>
             )}
           </div>
-
-          {/* Pagination Controls */}
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={handlePageChange} // Update page when pagination changes
-          />
         </>
       )}
     </div>

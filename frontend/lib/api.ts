@@ -6,22 +6,18 @@ export const api: AxiosInstance = axios.create({
 });
 
 // Get all tiles
-export const getAllTiles = async (
-  page: number = 1,
-  searchQuery: string = ""
-) => {
+export const getAllTiles = async (searchQuery: string = "") => {
   try {
     // If search query exists, filter tiles based on title
     const searchFilter = searchQuery
       ? `&filters[title][$containsi]=${searchQuery}`
       : ""; // Search filter with the title
-    // Fetch tiles with pagination and populate the required fields
+    // Fetch all tiles and populate the required fields including nested list_items
     const response = await api.get(
-      `api/tiles?populate=*&pagination[page]=${page}&pagination[pageSize]=${process.env.NEXT_PUBLIC_PAGE_LIMIT}${searchFilter}`
+      `api/tiles?populate[0]=cover&populate[1]=list_items.attachment&populate[2]=content${searchFilter}`
     );
     return {
       tiles: response.data.data,
-      pagination: response.data.meta.pagination, // Return data and include pagination data
     };
   } catch (error) {
     console.error("Error fetching tiles:", error);
@@ -33,8 +29,8 @@ export const getAllTiles = async (
 export const getTileBySlug = async (slug: string) => {
   try {
     const response = await api.get(
-      `api/tiles?filters[slug]=${slug}&populate=*`
-    ); // Fetch a single tile using the slug parameter
+      `api/tiles?filters[slug]=${slug}&populate[0]=cover&populate[1]=list_items.attachment&populate[2]=content`
+    ); // Fetch a single tile using the slug parameter with proper nested population
     if (response.data.data.length > 0) {
       // If tile exists
       return response.data.data[0]; // Return the tile data

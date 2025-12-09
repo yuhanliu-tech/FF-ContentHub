@@ -41,6 +41,11 @@
       "components": [
         "content.page-content"
       ]
+    },
+    "list_items": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::list-item.list-item"
     }
   }
 }

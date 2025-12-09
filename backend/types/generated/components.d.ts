@@ -7,10 +7,7 @@ export interface ContentPageContent extends Struct.ComponentSchema {
     icon: 'file';
   };
   attributes: {
-    list_items: Schema.Attribute.Relation<
-      'oneToMany',
-      'api::list-item.list-item'
-    >;
+    words: Schema.Attribute.RichText;
   };
 }
 
