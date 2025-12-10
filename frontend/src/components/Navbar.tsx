@@ -41,16 +41,6 @@ const Navbar = () => {
     checkAuth();
   }, []);
 
-  // Handle search query submission
-  const handleSearchSubmit = () => {
-    const params = new URLSearchParams(searchParams);
-    if (searchQuery) params.set("search", searchQuery);
-    else params.delete("search");
-    // Always routes with the search query
-    replace(`/?${params.toString()}`);
-    setSearchOpen(false); // Close search bar after submission
-  };
-
   const handleLogout = () => {
     logout();
   };
@@ -76,13 +66,6 @@ const Navbar = () => {
         {/* User Authentication Section */}
         {authenticated && user && (
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setSearchOpen(!searchOpen)}
-              className="text-white hover:text-gray-200 transition-colors"
-              title="Search"
-            >
-              {searchOpen ? <FaTimes size={18} /> : <FaSearch size={18} />}
-            </button>
             <span className="text-white text-sm">
               Welcome, {user.username}
             </span>
@@ -98,29 +81,6 @@ const Navbar = () => {
         )}
       </nav>
 
-      {/* Search Bar */}
-      {searchOpen && (
-        <div className="max-w-screen-lg mx-auto px-4">
-          <div className="flex items-center gap-2 bg-white rounded-md p-2">
-            <FaSearch className="text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search tiles..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyPress={(e) => e.key === 'Enter' && handleSearchSubmit()}
-              className="flex-1 outline-none"
-              autoFocus
-            />
-            <button
-              onClick={() => setSearchOpen(false)}
-              className="text-gray-400 hover:text-gray-600"
-            >
-              <FaTimes />
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
