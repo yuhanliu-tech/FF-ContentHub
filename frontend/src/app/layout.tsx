@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Poppins, Inter } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import ConditionalLayout from "@/components/ConditionalLayout";
 import { Toaster } from "react-hot-toast";
 
 const poppins = Poppins({
@@ -31,15 +30,11 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${inter.variable} antialiased min-h-screen flex flex-col`}
       >
-        <Navbar />
-
-        {/* Main content expands to fill available space */}
-        <main className="flex-grow">
+        <ConditionalLayout>
           {children}
-        </main>
-
+        </ConditionalLayout>
+        
         <Toaster />
-        <Footer />
       </body>
     </html>
   );

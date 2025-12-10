@@ -5,6 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getAllTiles, getHomepageHero } from "../../lib/api";
 import { Tile, HomepageHero } from "@/../lib/types";
+import { isAuthenticated } from "../../lib/auth";
 import Loader from "@/components/Loader";
 
 export default function Home() {
@@ -12,6 +13,7 @@ export default function Home() {
   const [hero, setHero] = useState<HomepageHero | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -19,7 +21,18 @@ export default function Home() {
   // Get the search query from URL params
   const searchQuery = searchParams.get("search") ?? "";
 
+  // Check authentication on mount
   useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/auth/login');
+      return;
+    }
+    setAuthChecked(true);
+  }, [router]);
+
+  useEffect(() => {
+    if (!authChecked) return; // Wait for auth check to complete
+
     const fetchData = async () => {
       try {
         const [tilesResponse, heroResponse] = await Promise.all([
@@ -37,7 +50,7 @@ export default function Home() {
     };
 
     fetchData();
-  }, [searchQuery]); // Re-fetch when search query changes
+  }, [searchQuery, authChecked]); // Re-fetch when search query changes or auth is checked
 
   // Filter tiles by category
   const { archiveTiles, toolTiles } = useMemo(() => {

@@ -1,5 +1,27 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Setup
+
+Before running the project, copy the environment file:
+
+```bash
+cp .env.example .env.local
+```
+
+Make sure to update `NEXT_PUBLIC_STRAPI_URL` in `.env.local` to point to your Strapi backend (default: `http://localhost:1337`).
+
+## Authentication
+
+This app uses Discord OAuth for authentication through Strapi. Users must login with Discord before accessing the content.
+
+### Authentication Flow:
+1. User visits the homepage and gets redirected to `/auth/login`
+2. User clicks "Continue with Discord" 
+3. User is redirected to Strapi's Discord OAuth endpoint
+4. After Discord authentication, user is redirected back to `/connect/discord/redirect`
+5. The app exchanges the auth code for a JWT token and stores it locally
+6. User is redirected to the homepage with authenticated access
+
 ## Getting Started
 
 First, run the development server:

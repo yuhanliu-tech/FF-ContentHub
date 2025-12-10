@@ -1,8 +1,18 @@
 // lib/api.ts
 import axios, { AxiosInstance } from "axios";
+import { getAuthToken } from "./auth";
 
 export const api: AxiosInstance = axios.create({
   baseURL: `${process.env.NEXT_PUBLIC_STRAPI_URL}`,
+});
+
+// Add auth token to requests if available
+api.interceptors.request.use((config) => {
+  const token = getAuthToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 // Get all tiles
