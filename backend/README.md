@@ -1,4 +1,31 @@
-# 🚀 Getting started with Strapi
+# FF CMS-Specific README
+
+## Postgres DB
+
+This project runs on PostgreSQL. 
+Each developer must create their own local database.
+
+### Create DB and User
+(Alternatively, download PostgreSQL via the installer and use its UI)
+
+``` bash
+psql -U postgres
+```
+
+Then:
+
+``` sql
+CREATE DATABASE mydb;
+CREATE USER myuser WITH ENCRYPTED PASSWORD 'mypassword';
+GRANT ALL PRIVILEGES ON DATABASE mydb TO myuser;
+```
+
+## env Files
+
+These are not committed to Github.
+
+# Strapi Default README
+## 🚀 Getting started with Strapi
 
 Strapi comes with a full featured [Command Line Interface](https://docs.strapi.io/dev-docs/cli) (CLI) which lets you scaffold and manage your project in seconds.
 
@@ -8,8 +35,6 @@ Start your Strapi application with autoReload enabled. [Learn more](https://docs
 
 ```
 npm run develop
-# or
-yarn develop
 ```
 
 ### `start`
@@ -18,8 +43,6 @@ Start your Strapi application with autoReload disabled. [Learn more](https://doc
 
 ```
 npm run start
-# or
-yarn start
 ```
 
 ### `build`
@@ -28,8 +51,6 @@ Build your admin panel. [Learn more](https://docs.strapi.io/dev-docs/cli#strapi-
 
 ```
 npm run build
-# or
-yarn build
 ```
 
 ## ⚙️ Deployment
