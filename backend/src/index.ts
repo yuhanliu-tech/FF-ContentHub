@@ -64,7 +64,7 @@ export default {
           catch (err) {
             throw new Error("Login flow failed. Please contact the site administrator.");            return null;
           }
-          console.log("Feedforward userinfo response:", feedforward.body);
+          //console.log("Feedforward userinfo response:", feedforward.body);
           // Example result:
           // {"sub":"327228358788124163","name":"cyan","given_name":"cyan","family_name":"-","locale":null,"updated_at":1751540698,"preferred_username":"cyanfr","email":"me@test.com","email_verified":true}
           return {
