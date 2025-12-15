@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     setIsLoading(true);
     // Redirect to Strapi's Discord authentication endpoint
-    window.location.href = `${BACKEND_URL}/api/connect/discord`;
+    window.location.href = `${BACKEND_URL}/api/connect/feedforward`;
   };
 
   return (

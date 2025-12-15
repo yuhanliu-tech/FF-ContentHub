@@ -22,7 +22,7 @@ export default function DiscordRedirect() {
         
         // Make the callback request to Strapi
         const response = await fetch(
-          `${BACKEND_URL}/api/auth/discord/callback?${urlParams}`,
+          `${BACKEND_URL}/api/auth/feedforward/callback?${urlParams}`,
           {
             method: 'GET',
             headers: {
