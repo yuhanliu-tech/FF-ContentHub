@@ -60,12 +60,16 @@ export default function Home() {
   }, [tiles]);
 
   const handleTileClick = (tile: Tile) => {
+    // If tile should link to single type page, navigate to the single type page using slug
+    if (tile.link_to_single_type) {
+      router.push(`/${tile.slug.toLowerCase()}`);
+    } 
     // If tile has an external link, navigate to it in the current tab
-    if (tile.link && tile.link.trim() !== "") {
+    else if (tile.link && tile.link.trim() !== "") {
       window.location.href = tile.link;
     } else {
       // Navigate to the tile detail page
-      router.push(`/tiles/${tile.slug}`);
+      router.push(`/tiles/${tile.slug.toLowerCase()}`);
     }
   };
 

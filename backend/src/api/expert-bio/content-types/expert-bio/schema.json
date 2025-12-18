@@ -1,0 +1,38 @@
+{
+  "kind": "collectionType",
+  "collectionName": "expert_bios",
+  "info": {
+    "singularName": "expert-bio",
+    "pluralName": "expert-bios",
+    "displayName": "Expert-Bio"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "required": true,
+      "allowedTypes": [
+        "images",
+        "files",
+        "videos",
+        "audios"
+      ]
+    },
+    "title": {
+      "type": "string",
+      "required": true
+    },
+    "bio": {
+      "type": "richtext",
+      "required": true
+    }
+  }
+}

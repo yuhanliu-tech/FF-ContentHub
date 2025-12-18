@@ -41,6 +41,11 @@
         "audios"
       ]
     },
+    "link_to_single_type": {
+      "type": "boolean",
+      "required": true,
+      "default": false
+    },
     "link": {
       "type": "string"
     },

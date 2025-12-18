@@ -71,7 +71,7 @@ const Navbar = () => {
             </span>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm transition-colors"
+              className="flex items-center gap-2 bg-brand-orange hover:bg-orange-600 text-white px-3 py-1 rounded-md text-sm transition-colors"
               title="Logout"
             >
               <FaSignOutAlt size={14} />

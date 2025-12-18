@@ -457,6 +457,71 @@ export interface ApiDocDoc extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiExpertBioExpertBio extends Struct.CollectionTypeSchema {
+  collectionName: 'expert_bios';
+  info: {
+    displayName: 'Expert-Bio';
+    pluralName: 'expert-bios';
+    singularName: 'expert-bio';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    bio: Schema.Attribute.RichText & Schema.Attribute.Required;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::expert-bio.expert-bio'
+    > &
+      Schema.Attribute.Private;
+    name: Schema.Attribute.String & Schema.Attribute.Required;
+    photo: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'> &
+      Schema.Attribute.Required;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String & Schema.Attribute.Required;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
+export interface ApiExpertNetExpertNet extends Struct.SingleTypeSchema {
+  collectionName: 'expert_nets';
+  info: {
+    displayName: 'Expert-Net';
+    pluralName: 'expert-nets';
+    singularName: 'expert-net';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    description: Schema.Attribute.RichText;
+    expert_bios: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::expert-bio.expert-bio'
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::expert-net.expert-net'
+    > &
+      Schema.Attribute.Private;
+    publishedAt: Schema.Attribute.DateTime;
+    title: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+  };
+}
+
 export interface ApiHomepageHeroHomepageHero extends Struct.SingleTypeSchema {
   collectionName: 'homepage_heroes';
   info: {
@@ -568,6 +633,9 @@ export interface ApiTileTile extends Struct.CollectionTypeSchema {
     description: Schema.Attribute.Text;
     docs: Schema.Attribute.Relation<'oneToMany', 'api::doc.doc'>;
     link: Schema.Attribute.String;
+    link_to_single_type: Schema.Attribute.Boolean &
+      Schema.Attribute.Required &
+      Schema.Attribute.DefaultTo<false>;
     list_items: Schema.Attribute.Relation<
       'oneToMany',
       'api::list-item.list-item'
@@ -1039,7 +1107,6 @@ export interface PluginUsersPermissionsUser
   };
   options: {
     draftAndPublish: false;
-    timestamps: true;
   };
   attributes: {
     blocked: Schema.Attribute.Boolean & Schema.Attribute.DefaultTo<false>;
@@ -1095,6 +1162,8 @@ declare module '@strapi/strapi' {
       'admin::transfer-token-permission': AdminTransferTokenPermission;
       'admin::user': AdminUser;
       'api::doc.doc': ApiDocDoc;
+      'api::expert-bio.expert-bio': ApiExpertBioExpertBio;
+      'api::expert-net.expert-net': ApiExpertNetExpertNet;
       'api::homepage-hero.homepage-hero': ApiHomepageHeroHomepageHero;
       'api::list-item.list-item': ApiListItemListItem;
       'api::logo.logo': ApiLogoLogo;

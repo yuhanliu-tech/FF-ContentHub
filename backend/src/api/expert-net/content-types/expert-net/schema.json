@@ -1,0 +1,26 @@
+{
+  "kind": "singleType",
+  "collectionName": "expert_nets",
+  "info": {
+    "singularName": "expert-net",
+    "pluralName": "expert-nets",
+    "displayName": "Expert-Net"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "richtext"
+    },
+    "expert_bios": {
+      "type": "relation",
+      "relation": "oneToMany",
+      "target": "api::expert-bio.expert-bio"
+    }
+  }
+}

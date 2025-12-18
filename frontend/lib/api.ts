@@ -77,3 +77,16 @@ export const getLogo = async () => {
     throw new Error("Server error");
   }
 };
+
+// Get expert-net content
+export const getExpertNet = async () => {
+  try {
+    const response = await api.get(
+      "api/expert-net?populate[expert_bios][populate]=photo"
+    );
+    return response.data.data;
+  } catch (error) {
+    console.error("Error fetching expert-net:", error);
+    throw new Error("Server error");
+  }
+};
