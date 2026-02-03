@@ -93,7 +93,7 @@ const ExpertNetPage = () => {
                     <img
                       src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bio.photo.url}`}
                       alt={bio.name}
-                      className="w-24 h-24 rounded-full object-cover"
+                      className="w-32 h-32 rounded-lg object-cover"
                     />
                   </div>
                 )}
@@ -139,7 +139,7 @@ const ExpertNetPage = () => {
                     <img
                       src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${selectedExpert.photo.url}`}
                       alt={selectedExpert.name}
-                      className="w-48 h-48 rounded-full object-cover"
+                      className="w-64 h-64 rounded-lg object-cover"
                     />
                   </div>
                 )}
