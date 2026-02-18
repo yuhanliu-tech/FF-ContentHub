@@ -3,8 +3,15 @@
 :root {
   --background: #ffffff;
   --foreground: #ffffff;
-  --brand-blue: #1B3F6A;
-  --brand-orange: #EAA059;
+  --brand-blue: #1a3f69;
+  --brand-orange: #e9a059;
+  --secondary-blue: #536c89;
+  --peach: #f5d8bb;
+  --card-border: #d8d8d8;
+  --light-bg: #f4f4f4;
+  --text-primary: #1d1d1d;
+  --text-secondary: #828282;
+  --text-subtitle: #757575;
 }
 
 @theme inline {
@@ -48,6 +55,40 @@
   border-color: var(--brand-orange);
 }
 
+/* Secondary blue utilities */
+.bg-secondary-blue {
+  background-color: var(--secondary-blue);
+}
+
+.text-secondary-blue {
+  color: var(--secondary-blue);
+}
+
+/* Extended palette utilities */
+.bg-peach {
+  background-color: var(--peach);
+}
+
+.bg-light {
+  background-color: var(--light-bg);
+}
+
+.border-card {
+  border-color: var(--card-border);
+}
+
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-subtitle {
+  color: var(--text-subtitle);
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #ffffff;
@@ -56,7 +97,394 @@
 }
 
 body {
-  background: var(--background);
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(245, 216, 187, 0.13) 0%, transparent 55%),
+    var(--light-bg);
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
+}
+
+main {
+  margin: 0;
+}
+
+/* ── Glass Navbar ────────────────────────────── */
+.glass-nav {
+  background: rgba(26, 63, 105, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* ── Nav drawer (burger menu) ────────────────── */
+.nav-drawer {
+  animation: navDrawerIn 0.25s ease-out forwards;
+}
+
+@keyframes navDrawerIn {
+  from {
+    transform: translateX(-100%);
+    opacity: 0.9;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ── Homepage Warm Background ────────────────── */
+.home-bg {
+  background:
+    radial-gradient(ellipse at 20% 10%, rgba(245, 216, 187, 0.25) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(83, 108, 137, 0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(245, 216, 187, 0.15) 0%, transparent 50%),
+    #faf8f5;
+}
+
+/* decorative floating blobs */
+.home-blob {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: blobFloat 18s ease-in-out infinite alternate;
+}
+
+/* ── Tile filmstrip under hero ──────────────── */
+.tile-filmstrip {
+  position: relative;
+  overflow: hidden;
+  border-radius: 9999px;
+  padding: 1.5rem 1rem;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: none !important;
+}
+
+.tile-filmstrip-track {
+  display: flex;
+  gap: 1rem;
+  animation: filmstripScroll 28s linear infinite;
+}
+
+.tile-filmstrip:hover .tile-filmstrip-track {
+  animation-play-state: paused;
+}
+
+@keyframes filmstripScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.tile-filmstrip-item {
+  flex: 0 0 auto;
+  width: 180px;
+  height: 120px;
+  border-radius: 9999px;
+  overflow: hidden;
+  border: 1px solid rgba(216, 216, 216, 0.7);
+  background: #f9f7f4;
+  box-shadow: none !important;
+}
+
+.tile-filmstrip-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.tile-filmstrip-item:hover .tile-filmstrip-img {
+  transform: scale(1.05);
+}
+
+/* ── Hero media card ─────────────────────────── */
+.hero-media-card {
+  position: relative;
+  height: 100%;
+  min-height: 220px;
+  border-radius: 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0% 0%, rgba(233, 160, 89, 0.35), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(26, 63, 105, 0.45), transparent 60%),
+    #1a3f69;
+  box-shadow: 0 18px 40px rgba(26, 63, 105, 0.38);
+}
+
+.hero-media-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.02)
+  );
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.hero-media-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.hero-media-card:hover .hero-media-img {
+  transform: scale(1.04);
+}
+
+@keyframes blobFloat {
+  0%   { transform: translate(0, 0) scale(1); }
+  50%  { transform: translate(12px, -18px) scale(1.04); }
+  100% { transform: translate(-8px, 10px) scale(0.97); }
+}
+
+/* playful card rotations – alternating tilt */
+.tile-card:nth-child(3n+1) { --card-rotate: -0.8deg; }
+.tile-card:nth-child(3n+2) { --card-rotate: 0.5deg; }
+.tile-card:nth-child(3n+3) { --card-rotate: -0.3deg; }
+
+/* ── Tile Card System ────────────────────────── */
+.tile-card {
+  position: relative;
+  background: #fff;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: 0 2px 16px rgba(26, 63, 105, 0.07);
+  transform: rotate(var(--card-rotate, 0deg));
+  transition:
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.4s ease;
+}
+
+.tile-card:hover {
+  transform: perspective(800px) rotateY(-1.5deg) rotateX(0.8deg) translateY(-8px) rotate(0deg);
+  box-shadow: 0 20px 48px rgba(26, 63, 105, 0.15);
+}
+
+/* orange accent bar at bottom */
+.tile-card::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--brand-orange);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1;
+}
+
+.tile-card:hover::after {
+  transform: scaleX(1);
+}
+
+/* image zoom on hover */
+.tile-card__img {
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.tile-card:hover .tile-card__img {
+  transform: scale(1.06);
+}
+
+/* ── Gradient Divider ────────────────────────── */
+.gradient-divider {
+  height: 2px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--brand-orange) 25%,
+    var(--brand-orange) 75%,
+    transparent 100%
+  );
+  border: none;
+}
+
+/* ── Polished Search Input ───────────────────── */
+.search-input {
+  border-radius: 0.85rem;
+  border: 1px solid var(--card-border);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--brand-blue);
+  box-shadow:
+    inset 0 1px 3px rgba(0, 0, 0, 0.04),
+    0 0 0 3px rgba(26, 63, 105, 0.12);
+}
+
+/* ── Polished Table ──────────────────────────── */
+.polished-table {
+  border-radius: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(26, 63, 105, 0.06);
+}
+
+.polished-table thead tr:first-child th:first-child {
+  border-top-left-radius: 1rem;
+}
+
+.polished-table thead tr:first-child th:last-child {
+  border-top-right-radius: 1rem;
+}
+
+.polished-table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.polished-table tbody tr:nth-child(even) {
+  background: rgba(244, 244, 244, 0.5);
+}
+
+.polished-table tbody tr:hover {
+  background: rgba(245, 216, 187, 0.18);
+}
+
+/* ── Expert Card – Portrait Gallery ──────────── */
+.expert-card {
+  position: relative;
+  aspect-ratio: 3 / 4;
+  border-radius: 1.25rem;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.expert-card__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.expert-card:hover .expert-card__img {
+  transform: scale(1.06);
+}
+
+/* gradient scrim – always visible */
+.expert-card__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(26, 63, 105, 0.92) 0%,
+    rgba(26, 63, 105, 0.45) 40%,
+    transparent 65%
+  );
+  transition: background 0.4s ease;
+  pointer-events: none;
+}
+
+.expert-card:hover .expert-card__scrim {
+  background: linear-gradient(
+    to top,
+    rgba(26, 63, 105, 0.95) 0%,
+    rgba(26, 63, 105, 0.70) 50%,
+    rgba(26, 63, 105, 0.30) 75%
+  );
+}
+
+/* text content – pinned to bottom */
+.expert-card__content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+/* hidden detail section revealed on hover */
+.expert-card__detail {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    max-height 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    opacity 0.35s ease 0.08s;
+}
+
+.expert-card:hover .expert-card__detail {
+  max-height: 14rem;
+  opacity: 1;
+}
+
+/* lift + shadow on hover */
+.expert-card {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    box-shadow 0.4s ease;
+}
+
+.expert-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 50px rgba(26, 63, 105, 0.22);
+}
+
+/* ── Staggered entrance ──────────────────────── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(40px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.card-animate-in {
+  opacity: 0;
+  animation: fadeInUp 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* ── Modal entrance ──────────────────────────── */
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-animate-in {
+  animation: modalIn 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes backdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.backdrop-animate-in {
+  animation: backdropIn 0.25s ease forwards;
+}
+
+/* ── Expert Avatar Spin ─────────────────────── */
+@keyframes avatarSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
 }

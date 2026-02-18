@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { getAllTiles, getHomepageHero } from "../../lib/api";
 import { Tile, HomepageHero } from "@/../lib/types";
-import { isAuthenticated } from "../../lib/auth";
+import { isAuthenticated, getUser } from "../../lib/auth";
 import Loader from "@/components/Loader";
 
 export default function Home() {
@@ -14,24 +14,27 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [userName, setUserName] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Get the search query from URL params
   const searchQuery = searchParams.get("search") ?? "";
 
-  // Check authentication on mount
   useEffect(() => {
     if (!isAuthenticated()) {
       router.push('/auth/login');
       return;
     }
     setAuthChecked(true);
+    const user = getUser();
+    if (user?.username) {
+      setUserName(user.username);
+    }
   }, [router]);
 
   useEffect(() => {
-    if (!authChecked) return; // Wait for auth check to complete
+    if (!authChecked) return;
 
     const fetchData = async () => {
       try {
@@ -50,143 +53,143 @@ export default function Home() {
     };
 
     fetchData();
-  }, [searchQuery, authChecked]); // Re-fetch when search query changes or auth is checked
-
-  // Filter tiles by category
-  const { archiveTiles, toolTiles } = useMemo(() => {
-    const archive = tiles.filter(tile => tile.category === "archive");
+  }, [searchQuery, authChecked]);
+  const { toolTiles, contentSeriesTiles } = useMemo(() => {
     const tools = tiles.filter(tile => tile.category === "tool");
-    return { archiveTiles: archive, toolTiles: tools };
+    const contentSeries = tiles.filter(tile => tile.category === "dashboard");
+    return { toolTiles: tools, contentSeriesTiles: contentSeries };
   }, [tiles]);
 
   const handleTileClick = (tile: Tile) => {
-    // If tile should link to single type page, navigate to the single type page using slug
     if (tile.link_to_single_type) {
       router.push(`/${tile.slug.toLowerCase()}`);
-    } 
-    // If tile has an external link, navigate to it in the current tab
-    else if (tile.link && tile.link.trim() !== "") {
+    } else if (tile.link && tile.link.trim() !== "") {
       window.location.href = tile.link;
     } else {
-      // Navigate to the tile detail page
       router.push(`/tiles/${tile.slug.toLowerCase()}`);
     }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto p-4">
-      {loading && (
-        <div className="w-full flex items-center justify-center">
-          <Loader />
-        </div>
-      )}
-      {error && <p>{error}</p>}
+  /** Shared tile card renderer */
+  const renderTileCard = (tile: Tile, idx: number, fallbackBg: string) => (
+    <div
+      key={tile.id}
+      className="tile-card group card-animate-in"
+      style={{ "--delay": `${idx * 80}ms` } as React.CSSProperties}
+      onClick={() => handleTileClick(tile)}
+    >
+      <div className={`relative h-44 w-full overflow-hidden ${fallbackBg}`}>
+        {tile.cover?.url && (
+          <img
+            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${tile.cover.url}`}
+            alt={tile.title}
+            className="tile-card__img w-full h-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+          />
+        )}
+      </div>
+      <div className="p-5">
+        <h3 className="text-sm font-semibold font-poppins text-primary line-clamp-2">
+          {tile.title}
+        </h3>
+        {tile.description && (
+          <p className="text-secondary mt-2 text-sm leading-relaxed line-clamp-3 font-inter">
+            {tile.description}
+          </p>
+        )}
+      </div>
+    </div>
+  );
 
-      {!loading && !error && (
-        <>
-          {/* Homepage Hero Section */}
-          {hero && (
-            <div className="mb-16 pt-8">
-              {hero.cover?.url && (
-                <div className="mb-6">
-                  <img
-                    src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${hero.cover.url}`}
-                    alt="Logo"
-                    className="w-2/3 h-auto rounded-lg"
-                  />
-                </div>
-              )}
-              {hero.description && (
-                <div className="text-left">
-                  <p className="text-xl text-gray-700 leading-relaxed">
+
+  return (
+    <div className="home-bg min-h-screen relative overflow-hidden">
+      {/* ─── Decorative Blobs ─────────────────────── */}
+      <div className="home-blob absolute -top-24 -right-24 w-80 h-80 bg-peach opacity-20" />
+      <div className="home-blob absolute top-[40%] -left-32 w-64 h-64 bg-brand-orange opacity-[0.07]" style={{ animationDelay: "-6s" }} />
+      <div className="home-blob absolute bottom-[10%] right-[5%] w-48 h-48 bg-secondary-blue opacity-[0.05]" style={{ animationDelay: "-12s" }} />
+
+      <div className="relative max-w-6xl mx-auto px-6 pt-10 pb-16">
+        {loading && (
+          <div className="w-full flex items-center justify-center min-h-[40vh]">
+            <Loader />
+          </div>
+        )}
+        {error && (
+          <p className="text-red-600 text-center py-12 font-inter">{error}</p>
+        )}
+
+        {!loading && !error && (
+          <>
+            {/* ─── Hero Section ───────────────────────── */}
+            {hero && (
+              <section className="mb-16 card-animate-in">
+                <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-poppins mb-3">
+                  {userName ? `Welcome back, ${userName}!` : "Welcome!"}
+                </h1>
+                <p className="text-base md:text-lg text-subtitle leading-relaxed max-w-xl font-inter mb-6">
+                  Here is your Feedforward content portal. Feel free to share.
+                </p>
+                {hero.description && !/lorem\s+ipsum/i.test(hero.description.trim()) && (
+                  <p className="text-base md:text-lg text-subtitle leading-relaxed max-w-xl font-inter mb-6">
                     {hero.description}
                   </p>
+                )}
+              </section>
+            )}
+
+            {/* ─── Gradient Divider ───────────────────── */}
+            <div className="gradient-divider mb-14" />
+
+            {/* ─── Tools Section ──────────────────────── */}
+            {toolTiles.length > 0 && (
+              <section id="tools-section" className="mb-14">
+                <header className="mb-6">
+                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-poppins text-brand-blue">
+                    <span className="inline-block w-8 h-1 rounded-full bg-brand-orange" />
+                    Tools
+                  </h2>
+                  <p className="text-sm text-subtitle font-inter">
+                    Internal utilities and helpers to navigate and use your Feedforward content faster.
+                  </p>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {toolTiles.map((tile, idx) => renderTileCard(tile, idx, "bg-brand-blue"))}
                 </div>
-              )}
-            </div>
-          )}
+              </section>
+            )}
 
-          {/* Horizontal line separator */}
-          <div className="w-full h-px bg-brand-orange mb-12"></div>
+            {/* ─── Gradient Divider ───────────────────── */}
+            {contentSeriesTiles.length > 0 && (
+              <div className="gradient-divider mb-14" />
+            )}
 
-          {/* Tools Section */}
-          {toolTiles.length > 0 && (
-            <div className="mb-12">
-              <h2 className="text-3xl font-bold mb-10 mt-8 font-poppins text-brand-blue">Tools</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {toolTiles.map((tile) => (
-                  <div
-                    key={tile.id}
-                    className="cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                    onClick={() => handleTileClick(tile)}
-                  >
-                    <div className="block">
-                      {tile.cover?.url && (
-                        <div className="relative h-36 w-full">
-                          <img
-                            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${tile.cover.url}`}
-                            alt={tile.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold font-poppins text-black line-clamp-2">
-                          {tile.title}
-                        </h3>
-                        <p className="text-gray-600 mt-2 text-sm leading-6 line-clamp-3 font-inter">
-                          {tile.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+            {/* ─── Dashboard Section ───────────── */}
+            {contentSeriesTiles.length > 0 && (
+              <section className="mb-14">
+                <header className="mb-6">
+                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-poppins text-brand-blue">
+                    <span className="inline-block w-8 h-1 rounded-full bg-brand-orange" />
+                    Dashboard
+                  </h2>
+                  <p className="text-sm text-subtitle font-inter">
+                    Curated content series and overview tiles that keep your initiatives on track.
+                  </p>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {contentSeriesTiles.map((tile, idx) => renderTileCard(tile, idx, "bg-brand-blue"))}
+                </div>
+              </section>
+            )}
 
-          {/* Archive Section */}
-          {archiveTiles.length > 0 && (
-            <div className="mb-20">
-              <h2 className="text-3xl font-bold mb-10 mt-8 font-poppins text-brand-blue">Archive</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {archiveTiles.map((tile) => (
-                  <div
-                    key={tile.id}
-                    className="cursor-pointer bg-white border border-gray-200 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow"
-                    onClick={() => handleTileClick(tile)}
-                  >
-                    <div className="block">
-                      {tile.cover?.url && (
-                        <div className="relative h-36 w-full">
-                          <img
-                            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${tile.cover.url}`}
-                            alt={tile.title}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                      )}
-                      <div className="p-4">
-                        <h3 className="text-lg font-semibold font-poppins text-black line-clamp-2">
-                          {tile.title}
-                        </h3>
-                        <p className="text-gray-600 mt-2 text-sm leading-6 line-clamp-3 font-inter">
-                          {tile.description}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* No tiles message */}
-          {tiles.length === 0 && (
-            <p className="text-gray-600 text-center font-inter">No tiles available at the moment.</p>
-          )}
-        </>
-      )}
+            {tiles.length === 0 && (
+              <p className="text-secondary text-center py-16 font-inter">
+                No tiles available at the moment.
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

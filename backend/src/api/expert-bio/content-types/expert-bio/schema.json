@@ -15,16 +15,16 @@
       "type": "string",
       "required": true
     },
+    "slug": {
+      "type": "uid",
+      "targetField": "name",
+      "required": true
+    },
     "photo": {
       "type": "media",
       "multiple": false,
-      "required": true,
-      "allowedTypes": [
-        "images",
-        "files",
-        "videos",
-        "audios"
-      ]
+      "required": false,
+      "allowedTypes": ["images", "files", "videos", "audios"]
     },
     "title": {
       "type": "string",
@@ -33,6 +33,10 @@
     "bio": {
       "type": "richtext",
       "required": true
+    },
+    "advisory_topics": {
+      "type": "richtext",
+      "required": false
     }
   }
 }

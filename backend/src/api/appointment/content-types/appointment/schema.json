@@ -1,0 +1,45 @@
+{
+  "kind": "collectionType",
+  "collectionName": "appointments",
+  "info": {
+    "singularName": "appointment",
+    "pluralName": "appointments",
+    "displayName": "Appointment"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "expert": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "api::expert-bio.expert-bio",
+      "required": true
+    },
+    "user": {
+      "type": "relation",
+      "relation": "manyToOne",
+      "target": "plugin::users-permissions.user",
+      "required": true
+    },
+    "preferred_date": {
+      "type": "date",
+      "required": true
+    },
+    "preferred_time": {
+      "type": "string",
+      "required": false
+    },
+    "message": {
+      "type": "text",
+      "required": false
+    },
+    "status": {
+      "type": "enumeration",
+      "enum": ["requested", "confirmed", "cancelled", "completed"],
+      "default": "requested",
+      "required": true
+    }
+  }
+}

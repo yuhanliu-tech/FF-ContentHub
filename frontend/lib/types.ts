@@ -34,7 +34,7 @@ export interface Tile {
   link: string; // External or internal link
   link_to_single_type: boolean; // Boolean indicating if tile should link to single type page
   list_items?: ListItem[]; // Direct list items on the tile
-  category: "archive" | "tool"; // Category enumeration
+  category: "archive" | "tool"| "dashboard"; // Category enumeration
 }
 
 export interface HomepageHero {
@@ -57,9 +57,11 @@ export interface Logo {
 export interface ExpertBio {
   id: number;
   name: string;
+  slug?: string;
   title: string;
   photo?: ImageData;
   bio: string; // rich text content
+  advisory_topics?: string | null; // optional richtext: focus areas / example advisory session topics
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
@@ -73,4 +75,50 @@ export interface ExpertNet {
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
+}
+
+export interface Document {
+  id: number;
+  title: string;
+  file: ImageData;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  provider: string;
+  confirmed: boolean;
+  blocked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** User identity for app personalization (Discord or mock). id is string for Discord compatibility. */
+export interface AppUser {
+  id: string;
+  username: string;
+  avatarUrl?: string;
+}
+
+export type AppointmentStatus =
+  | "requested"
+  | "confirmed"
+  | "cancelled"
+  | "completed";
+
+export interface Appointment {
+  id?: number;
+  documentId?: string;
+  expert: number | ExpertBio;
+  user?: number;
+  preferred_date: string;
+  preferred_time?: string | null;
+  message?: string | null;
+  status: AppointmentStatus;
+  createdAt?: string;
+  updatedAt?: string;
 }

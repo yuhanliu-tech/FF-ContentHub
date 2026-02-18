@@ -1,17 +1,22 @@
 // app/expert-net/page.tsx
 "use client";
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { getExpertNet } from "../../../lib/api";
 import { ExpertNet, ExpertBio } from "../../../lib/types";
+import { slugFromName } from "../../../lib/expertAdvisoryTopics";
 import Loader from "../../components/Loader";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import BackToHome from "../../components/BackToHome";
+import { FaUser, FaArrowRight, FaCalendarCheck } from "react-icons/fa";
+
+function expertSlug(bio: ExpertBio): string {
+  return (bio.slug && bio.slug.trim()) ? bio.slug.trim() : slugFromName(bio.name);
+}
 
 const ExpertNetPage = () => {
   const [expertNet, setExpertNet] = useState<ExpertNet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedExpert, setSelectedExpert] = useState<ExpertBio | null>(null);
 
   useEffect(() => {
     const fetchExpertNet = async () => {
@@ -29,160 +34,205 @@ const ExpertNetPage = () => {
         setLoading(false);
       }
     };
-
     fetchExpertNet();
   }, []);
 
-  if (loading) return <Loader />;
-  if (error) return <div className="text-red-500 p-8 text-center">{error}</div>;
-  if (!expertNet) return <div className="text-gray-500 p-8 text-center">No expert net content found</div>;
+  /** Strip markdown to plain text for preview excerpts */
+  const plainText = (md: string) =>
+    md
+      .replace(/#{1,6}\s+/g, "")
+      .replace(/\*{1,3}(.*?)\*{1,3}/g, "$1")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/[`~>|]/g, "")
+      .replace(/\n{2,}/g, " ")
+      .replace(/\n/g, " ")
+      .trim();
+
+  if (loading)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
+  if (error)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-red-500 text-lg">{error}</p>
+      </div>
+    );
+  if (!expertNet)
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500 text-lg">No expert net content found</p>
+      </div>
+    );
+
+  const bios = expertNet.expert_bios ?? [];
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8">
-      {/* Header Section */}
-      {expertNet.title && (
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-brand-blue mb-4">
-            {expertNet.title}
-          </h1>
-        </div>
-      )}
-
-      {/* Description Section */}
-      {expertNet.description && (
-        <div className="mb-8">
-          <div className="prose prose-lg max-w-none text-gray-700 leading-relaxed">
-            <ReactMarkdown 
-              remarkPlugins={[remarkGfm]}
-              components={{
-                h1: ({children}) => <h1 className="text-3xl font-bold text-brand-blue mb-4">{children}</h1>,
-                h2: ({children}) => <h2 className="text-2xl font-bold text-brand-blue mb-3">{children}</h2>,
-                h3: ({children}) => <h3 className="text-xl font-semibold text-brand-blue mb-2">{children}</h3>,
-                h4: ({children}) => <h4 className="text-lg font-semibold text-brand-blue mb-2">{children}</h4>,
-                p: ({children}) => <p className="mb-4 text-gray-700 leading-relaxed">{children}</p>,
-                ul: ({children}) => <ul className="list-disc list-inside mb-4 space-y-1">{children}</ul>,
-                ol: ({children}) => <ol className="list-decimal list-inside mb-4 space-y-1">{children}</ol>,
-                li: ({children}) => <li className="text-gray-700">{children}</li>,
-                blockquote: ({children}) => <blockquote className="border-l-4 border-brand-blue pl-4 italic text-gray-600 mb-4 bg-gray-50 py-2">{children}</blockquote>,
-                code: ({children}) => <code className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">{children}</code>,
-                pre: ({children}) => <pre className="bg-gray-900 text-white p-4 rounded-lg overflow-x-auto mb-4">{children}</pre>,
-                strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                em: ({children}) => <em className="italic text-gray-700">{children}</em>,
-                a: ({children, href}) => <a href={href} className="text-brand-blue hover:underline" target="_blank" rel="noopener noreferrer">{children}</a>,
-              }}
+    <>
+      <div className="min-h-screen bg-gray-50">
+        {/* ─── Header (main-page style: title + elegant orange line) ─── */}
+        <section className="max-w-6xl mx-auto px-6 pt-8 pb-2 card-animate-in">
+          <BackToHome label="Content Hub" />
+          {expertNet.title && (
+            <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-poppins mt-4">
+              {expertNet.title}
+            </h1>
+          )}
+          <p className="text-base text-subtitle font-inter mt-2 mb-6">
+            To ask questions or book an expert session, email{" "}
+            <a
+              href="mailto:maddie@feedforward.ai"
+              className="text-subtitle hover:underline underline-offset-2"
             >
-              {expertNet.description}
-            </ReactMarkdown>
-          </div>
-        </div>
-      )}
+              maddie@feedforward.ai
+            </a>
+            .
+          </p>
+          <div className="gradient-divider mb-14" />
+        </section>
 
-      {/* Expert Bios Section */}
-      {expertNet.expert_bios && expertNet.expert_bios.length > 0 && (
-        <div className="mb-8">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {expertNet.expert_bios.map((bio: ExpertBio) => (
-              <div 
-                key={bio.id} 
-                className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => setSelectedExpert(bio)}
-              >
-                {/* Photo */}
-                {bio.photo && (
-                  <div className="mb-4 flex justify-center">
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bio.photo.url}`}
-                      alt={bio.name}
-                      className="w-32 h-32 rounded-lg object-cover"
-                    />
-                  </div>
-                )}
-                {/* Name */}
-                <h3 className="text-lg font-semibold text-brand-blue mb-2 text-center">
-                  {bio.name}
-                </h3>
-                {/* Title */}
-                <p className="text-gray-600 text-center text-sm">
-                  {bio.title}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+        {/* ─── Card Grid ────────────────────────────────────── */}
+        {bios.length > 0 && (
+          <section className="max-w-6xl mx-auto px-6 pb-16 md:pb-20">
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {bios.map((bio: ExpertBio, idx: number) => {
+                const excerpt = plainText(bio.bio);
+                const slug = expertSlug(bio);
 
-      {/* Expert Bio Popup */}
-      {selectedExpert && (
-        <div className="fixed inset-0 bg-brand-blue bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[95vh] overflow-y-auto">
-            {/* Header */}
-            <div className="flex justify-between items-center p-6 border-b border-gray-200">
-              <div>
-                <h2 className="text-2xl font-bold text-brand-blue inline">{selectedExpert.name}</h2>
-                <span className="text-lg text-gray-600 ml-2">{selectedExpert.title}</span>
-              </div>
-              <button
-                onClick={() => setSelectedExpert(null)}
-                className="text-gray-500 hover:text-gray-700 text-xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-            
-            {/* Content */}
-            <div className="p-6 grid md:grid-cols-2 gap-8">
-              {/* Left Column - Photo and Title */}
-              <div className="flex flex-col items-center">
-                {/* Photo */}
-                {selectedExpert.photo && (
-                  <div className="mb-4">
-                    <img
-                      src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${selectedExpert.photo.url}`}
-                      alt={selectedExpert.name}
-                      className="w-64 h-64 rounded-lg object-cover"
-                    />
-                  </div>
-                )}
-              </div>
-              
-              {/* Right Column - Bio */}
-              <div className="flex items-start">
-                <div className="prose prose-sm max-w-none text-gray-700">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      h1: ({children}) => <h1 className="text-2xl font-bold text-brand-blue mb-3">{children}</h1>,
-                      h2: ({children}) => <h2 className="text-xl font-bold text-brand-blue mb-2">{children}</h2>,
-                      h3: ({children}) => <h3 className="text-lg font-semibold text-brand-blue mb-2">{children}</h3>,
-                      h4: ({children}) => <h4 className="text-base font-semibold text-brand-blue mb-2">{children}</h4>,
-                      p: ({children}) => <p className="mb-3 text-gray-700 leading-relaxed text-sm">{children}</p>,
-                      ul: ({children}) => <ul className="list-disc list-inside mb-3 space-y-1">{children}</ul>,
-                      ol: ({children}) => <ol className="list-decimal list-inside mb-3 space-y-1">{children}</ol>,
-                      li: ({children}) => <li className="text-gray-700 text-sm">{children}</li>,
-                      blockquote: ({children}) => <blockquote className="border-l-4 border-brand-blue pl-3 italic text-gray-600 mb-3 bg-gray-50 py-2 text-sm">{children}</blockquote>,
-                      code: ({children}) => <code className="bg-gray-100 px-1 py-0.5 rounded text-xs font-mono">{children}</code>,
-                      pre: ({children}) => <pre className="bg-gray-900 text-white p-3 rounded-lg overflow-x-auto mb-3 text-sm">{children}</pre>,
-                      strong: ({children}) => <strong className="font-semibold text-gray-900">{children}</strong>,
-                      em: ({children}) => <em className="italic text-gray-700">{children}</em>,
-                      a: ({children, href}) => <a href={href} className="text-brand-blue hover:underline text-sm" target="_blank" rel="noopener noreferrer">{children}</a>,
-                    }}
+                return (
+                  <div
+                    key={bio.id}
+                    className="expert-card card-animate-in group block relative"
+                    style={
+                      { "--delay": `${idx * 100}ms` } as React.CSSProperties
+                    }
                   >
-                    {selectedExpert.bio}
-                  </ReactMarkdown>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                  <Link
+                    href={`/expert-net/${slug}`}
+                    className="absolute inset-0 z-10"
+                    aria-label={`View ${bio.name} profile`}
+                  />
+                    {/* Photo */}
+                    {bio.photo ? (
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bio.photo.url}`}
+                        alt={bio.name}
+                        className="expert-card__img"
+                      />
+                    ) : (
+                      <div className="expert-card__img bg-secondary-blue flex items-center justify-center">
+                        <FaUser className="text-white/30 text-6xl" />
+                      </div>
+                    )}
 
-      {/* Metadata Section */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
-        <div className="text-sm text-gray-500 space-y-1">
-          <p>Last Updated: {new Date(expertNet.updatedAt).toLocaleDateString()}</p>
+                    {/* Gradient scrim */}
+                    <div className="expert-card__scrim" />
+
+                    {/* Round avatar – upper left */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "0.75rem",
+                        left: "0.75rem",
+                        zIndex: 30,
+                        pointerEvents: "auto",
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget.querySelector("[data-avatar]") as HTMLElement;
+                        if (el) el.style.animation = "avatarSpin 0.6s ease forwards";
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget.querySelector("[data-avatar]") as HTMLElement;
+                        if (el) el.style.animation = "none";
+                      }}
+                    >
+                      {bio.photo ? (
+                        <img
+                          data-avatar
+                          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bio.photo.url}`}
+                          alt={bio.name}
+                          style={{
+                            width: "3.5rem",
+                            height: "3.5rem",
+                            borderRadius: "50%",
+                            objectFit: "cover",
+                            border: "3px solid #e9a059",
+                            outline: "2.5px solid rgba(255,255,255,0.8)",
+                            boxShadow: "0 3px 14px rgba(0,0,0,0.3)",
+                            display: "block",
+                          }}
+                        />
+                      ) : (
+                        <div
+                          data-avatar
+                          style={{
+                            width: "3.5rem",
+                            height: "3.5rem",
+                            borderRadius: "50%",
+                            border: "3px solid #e9a059",
+                            outline: "2.5px solid rgba(255,255,255,0.8)",
+                            boxShadow: "0 3px 14px rgba(0,0,0,0.3)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: "#536c89",
+                          }}
+                        >
+                          <FaUser style={{ color: "rgba(255,255,255,0.6)", fontSize: "1.1rem" }} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Content overlay */}
+                    <div className="expert-card__content text-white">
+                      {/* Always-visible: name + title */}
+                      <h3 className="text-xl font-bold font-poppins leading-snug">
+                        {bio.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-brand-orange font-medium font-inter">
+                        {bio.title}
+                      </p>
+
+                      {/* Revealed on hover */}
+                      <div className="expert-card__detail">
+                        <div className="mt-4 h-px w-10 bg-brand-orange/60" />
+
+                        <p className="mt-4 text-sm text-white/75 leading-relaxed font-inter line-clamp-4">
+                          {excerpt.slice(0, 180)}
+                          {excerpt.length > 180 ? "..." : ""}
+                        </p>
+
+                        <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-orange tracking-wide uppercase font-inter">
+                          View Profile <FaArrowRight size={10} />
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      href={`/expert-net/${slug}#book-session`}
+                      className="absolute top-4 right-4 z-20 inline-flex items-center gap-1.5 rounded-lg bg-brand-orange px-3 py-2 text-xs font-semibold text-white font-inter hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <FaCalendarCheck size={12} /> Book session
+                    </Link>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Footer metadata */}
+        <div className="max-w-6xl mx-auto px-6 pb-12">
+          <div className="border-t border-gray-200 pt-6 text-sm text-subtitle font-inter">
+            Last Updated:{" "}
+            {new Date(expertNet.updatedAt).toLocaleDateString()}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
