@@ -72,10 +72,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           <FaTimes size={18} />
         </button>
 
-        <h2 id="login-modal-title" className="text-xl font-semibold font-poppins text-gray-900 dark:text-white pr-8">
+        <h2 id="login-modal-title" className="text-xl font-semibold font-didot text-gray-900 dark:text-white pr-8">
           Log in
         </h2>
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-inter">
+        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400 font-plex">
           Sign in with Discord to use the Content Hub.
         </p>
 

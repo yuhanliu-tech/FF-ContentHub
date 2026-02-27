@@ -17,17 +17,22 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-inter);
-  --font-headers: var(--font-poppins);
+  --font-sans: var(--font-plex);
+  --font-headers: var(--font-didot);
 }
 
-/* Tailwind font utilities */
-.font-poppins {
-  font-family: var(--font-poppins), sans-serif;
+/* GFS Didot (serif) – loaded via layout link */
+:root {
+  --font-didot: "GFS Didot", Georgia, serif;
 }
 
-.font-inter {
-  font-family: var(--font-inter), sans-serif;
+/* Tailwind font utilities – GFS Didot for headings, IBM Plex Sans for body */
+.font-didot {
+  font-family: var(--font-didot);
+}
+
+.font-plex {
+  font-family: var(--font-plex), system-ui, sans-serif;
 }
 
 /* Brand color utilities */
@@ -101,7 +106,7 @@ body {
     radial-gradient(ellipse at 50% 0%, rgba(245, 216, 187, 0.13) 0%, transparent 55%),
     var(--light-bg);
   color: var(--foreground);
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-plex), system-ui, sans-serif;
 }
 
 main {

@@ -1,13 +1,38 @@
 // app/expert-net/page.tsx
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { getExpertNet } from "../../../lib/api";
 import { ExpertNet, ExpertBio } from "../../../lib/types";
 import { slugFromName } from "../../../lib/expertAdvisoryTopics";
 import Loader from "../../components/Loader";
 import BackToHome from "../../components/BackToHome";
-import { FaUser, FaArrowRight, FaCalendarCheck } from "react-icons/fa";
+import ExpertMatchChat from "../../components/ExpertMatchChat";
+import { FaUser, FaArrowRight, FaCalendarCheck, FaChevronDown, FaChevronUp } from "react-icons/fa";
+
+const EXPERT_NET_FAQ: { category: string; q: string; a: string }[] = [
+  // Participation & Attendance
+  { category: "Participation & Attendance", q: "What counts as an expert session?", a: "Expert sessions are company-specific advisory and consultation sessions, not speaking engagements. Many experts in our network also do speaking engagements at different rates. If you're interested in a speaking engagement, Feedforward can facilitate." },
+  { category: "Participation & Attendance", q: "Who can we invite to expert sessions?", a: "Anyone from your organization can attend, including non-members and cross-functional partners. If you want colleagues to book their own sessions using your credits, contact Maddie." },
+  { category: "Participation & Attendance", q: "Can we use expert sessions for talks with clients or customers?", a: "No, expert sessions are for internal use only." },
+  { category: "Participation & Attendance", q: "How many people can attend?", a: "There's no hard limit, but please be reasonable. Keep it under 20 people for a real conversation." },
+  { category: "Participation & Attendance", q: "Can multiple experts join one session?", a: "Yes, but each expert costs the same number of credits." },
+  // Planning & Logistics
+  { category: "Planning & Logistics", q: "How long is the typical session?", a: "60 minutes." },
+  { category: "Planning & Logistics", q: "What formats are available?", a: "Fireside chats, informal conversations, or mini research talks followed by Q&A. Contact Maddie if you have something specific in mind." },
+  { category: "Planning & Logistics", q: "Are sessions in-person or virtual?", a: "Virtual only." },
+  { category: "Planning & Logistics", q: "How do I book an expert session?", a: "Contact Maddie or Gina to book." },
+  { category: "Planning & Logistics", q: "What preparation is required?", a: "You must complete the intake form before your session. If the form isn't completed, your session will be rescheduled." },
+  { category: "Planning & Logistics", q: "Can I do a prep call with the expert?", a: "Experts don't do prep calls. (Do you really want another meeting?!). Instead, we ask members to complete an intake form to provide context. If a prep call is essential, contact Maddie." },
+  { category: "Planning & Logistics", q: "Can I record the session?", a: "Not usually. In limited cases, we may allow recording for internal use. Ask Maddie in advance." },
+  { category: "Planning & Logistics", q: "Can experts sign an NDA before our session?", a: "Yes. Your Feedforward agreement covers confidentiality, but experts can sign additional NDAs upon request. Please coordinate through Maddie." },
+  { category: "Planning & Logistics", q: "What if I need to cancel or reschedule?", a: "Please notify Maddie and the expert as soon as possible. If an expert needs to reschedule due to unforeseen circumstances, we'll let you know." },
+  { category: "Planning & Logistics", q: "What video platform can we use (Zoom, Teams, etc.)?", a: "Your choice—Zoom, Teams, whatever you use. We default to Zoom unless you tell us otherwise." },
+  // Content & Follow-up
+  { category: "Content & Follow-up", q: "Can I hire an expert for an extended consulting engagement with my company?", a: "Yes, we'll connect you." },
+  { category: "Content & Follow-up", q: "Can I ask follow-up questions after the session?", a: "Yes! Our experts are very active on Discord. That's the place to ask follow-up questions. Many members also book additional sessions with the same expert." },
+  { category: "Content & Follow-up", q: "Will I receive any materials after the session?", a: "Sessions are conversations, not presentations, so there are no handouts. We recommend taking notes, and experts are reachable on Discord for follow-ups." },
+];
 
 function expertSlug(bio: ExpertBio): string {
   return (bio.slug && bio.slug.trim()) ? bio.slug.trim() : slugFromName(bio.name);
@@ -17,6 +42,16 @@ const ExpertNetPage = () => {
   const [expertNet, setExpertNet] = useState<ExpertNet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
+
+  const toggleFaq = useCallback((id: number) => {
+    setExpandedFaqId((prev) => (prev === id ? null : id));
+  }, []);
+
+  const scrollToFaq = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault();
+    document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const fetchExpertNet = async () => {
@@ -74,24 +109,42 @@ const ExpertNetPage = () => {
       <div className="min-h-screen bg-gray-50">
         {/* ─── Header (main-page style: title + elegant orange line) ─── */}
         <section className="max-w-6xl mx-auto px-6 pt-8 pb-2 card-animate-in">
-          <BackToHome label="Content Hub" />
-          {expertNet.title && (
-            <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-poppins mt-4">
-              {expertNet.title}
-            </h1>
-          )}
-          <p className="text-base text-subtitle font-inter mt-2 mb-6">
-            To ask questions or book an expert session, email{" "}
+          <BackToHome label="Member Portal" />
+          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-didot">
+                Founding team & Expert Advisory Network
+              </h1>
+              <p className="text-base text-subtitle font-plex mt-2 w-full">
+                Access world-class expertise through 60-minute virtual sessions with leading minds in AI, strategy, and organizational transformation.
+              </p>
+              <p className="text-base text-subtitle font-plex mt-2 mb-6">
+                If you have any questions, please email{" "}
+                <a
+                  href="mailto:maddie@feedforward.ai"
+                  className="text-subtitle hover:underline underline-offset-2"
+                >
+                  maddie@feedforward.ai
+                </a>
+                .
+              </p>
+            </div>
             <a
-              href="mailto:maddie@feedforward.ai"
-              className="text-subtitle hover:underline underline-offset-2"
+              href="#faq"
+              onClick={scrollToFaq}
+              className="inline-flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-blue border border-brand-blue rounded-lg hover:bg-brand-blue hover:text-white transition-colors font-plex"
             >
-              maddie@feedforward.ai
+              <FaChevronDown size={12} />
+              See FAQ
             </a>
-            .
-          </p>
+          </div>
           <div className="gradient-divider mb-14" />
         </section>
+
+        {/* ─── AI match chat: "Not sure who to book?" ─────────── */}
+        {bios.length > 0 && (
+          <ExpertMatchChat experts={bios} getExpertSlug={expertSlug} />
+        )}
 
         {/* ─── Card Grid ────────────────────────────────────── */}
         {bios.length > 0 && (
@@ -188,10 +241,10 @@ const ExpertNetPage = () => {
                     {/* Content overlay */}
                     <div className="expert-card__content text-white">
                       {/* Always-visible: name + title */}
-                      <h3 className="text-xl font-bold font-poppins leading-snug">
+                      <h3 className="text-xl font-bold font-didot leading-snug">
                         {bio.name}
                       </h3>
-                      <p className="mt-1 text-sm text-brand-orange font-medium font-inter">
+                      <p className="mt-1 text-sm text-brand-orange font-medium font-plex">
                         {bio.title}
                       </p>
 
@@ -199,12 +252,12 @@ const ExpertNetPage = () => {
                       <div className="expert-card__detail">
                         <div className="mt-4 h-px w-10 bg-brand-orange/60" />
 
-                        <p className="mt-4 text-sm text-white/75 leading-relaxed font-inter line-clamp-4">
+                        <p className="mt-4 text-sm text-white/75 leading-relaxed font-plex line-clamp-4">
                           {excerpt.slice(0, 180)}
                           {excerpt.length > 180 ? "..." : ""}
                         </p>
 
-                        <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-orange tracking-wide uppercase font-inter">
+                        <span className="mt-4 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-orange tracking-wide uppercase font-plex">
                           View Profile <FaArrowRight size={10} />
                         </span>
                       </div>
@@ -212,7 +265,7 @@ const ExpertNetPage = () => {
 
                     <Link
                       href={`/expert-net/${slug}#book-session`}
-                      className="absolute top-4 right-4 z-20 inline-flex items-center gap-1.5 rounded-lg bg-brand-orange px-3 py-2 text-xs font-semibold text-white font-inter hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                      className="absolute top-4 right-4 z-20 inline-flex items-center gap-1.5 rounded-lg bg-brand-orange px-3 py-2 text-xs font-semibold text-white font-plex hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <FaCalendarCheck size={12} /> Book session
@@ -224,9 +277,59 @@ const ExpertNetPage = () => {
           </section>
         )}
 
+        {/* FAQ */}
+        <section id="faq" className="max-w-6xl mx-auto px-6 pb-16 md:pb-20 scroll-mt-6" aria-labelledby="faq-heading">
+          <h2 id="faq-heading" className="text-xl md:text-2xl font-semibold text-brand-blue font-didot mb-6">
+            Frequently asked questions
+          </h2>
+          <div className="space-y-6">
+            {(() => {
+              let lastCategory = "";
+              let faqIndex = 0;
+              return EXPERT_NET_FAQ.map((item) => {
+                const showCategory = item.category !== lastCategory;
+                if (showCategory) lastCategory = item.category;
+                const id = faqIndex++;
+                const expanded = expandedFaqId === id;
+                return (
+                  <div key={id}>
+                    {showCategory && (
+                      <h3 className="text-sm font-semibold text-subtitle font-plex uppercase tracking-wide mb-3 first:mt-0 mt-6">
+                        {item.category}
+                      </h3>
+                    )}
+                    <div className="rounded-xl bg-white border border-card shadow-sm overflow-hidden">
+                      <button
+                        type="button"
+                        onClick={() => toggleFaq(id)}
+                        className="w-full flex items-center gap-3 px-5 py-4 text-left hover:bg-gray-50/80 transition-colors"
+                        aria-expanded={expanded}
+                      >
+                        <span className="flex-1 text-base font-medium text-brand-blue font-plex">
+                          {item.q}
+                        </span>
+                        <span className="text-subtitle shrink-0">
+                          {expanded ? <FaChevronUp size={14} /> : <FaChevronDown size={14} />}
+                        </span>
+                      </button>
+                      {expanded && (
+                        <div className="border-t border-card px-5 py-4 bg-gray-50/50">
+                          <p className="text-sm text-subtitle font-plex leading-relaxed">
+                            {item.a}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
+          </div>
+        </section>
+
         {/* Footer metadata */}
         <div className="max-w-6xl mx-auto px-6 pb-12">
-          <div className="border-t border-gray-200 pt-6 text-sm text-subtitle font-inter">
+          <div className="border-t border-gray-200 pt-6 text-sm text-subtitle font-plex">
             Last Updated:{" "}
             {new Date(expertNet.updatedAt).toLocaleDateString()}
           </div>

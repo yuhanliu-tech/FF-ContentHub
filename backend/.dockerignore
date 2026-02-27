@@ -1,0 +1,16 @@
+node_modules
+.git
+.tmp
+dist
+build
+*.log
+.env
+.env.*
+.strapi
+coverage
+*.sqlite
+*.sqlite3
+Dockerfile
+.dockerignore
+.railwayignore
+README.md

@@ -15,13 +15,14 @@
       "type": "string",
       "required": true
     },
+    "description": {
+      "type": "text"
+    },
     "file": {
       "type": "media",
       "multiple": false,
       "required": true,
-      "allowedTypes": [
-        "files"
-      ]
+      "allowedTypes": ["files", "audios"]
     }
   }
 }

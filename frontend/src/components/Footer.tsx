@@ -12,11 +12,11 @@ const Footer = () => {
 
       <div className="bg-brand-blue py-8">
         <div className="max-w-6xl mx-auto px-6 flex justify-between items-center">
-          <p className="text-sm text-white/60 font-inter">
+          <p className="text-sm text-white/60 font-plex">
             &copy; 2026 Feedforward
           </p>
 
-          <ul className="flex items-center gap-6 text-white/80 font-inter text-sm">
+          <ul className="flex items-center gap-6 text-white/80 font-plex text-sm">
             {[
               { href: "/docs", label: "Docs" },
               { href: "/support", label: "Support" },

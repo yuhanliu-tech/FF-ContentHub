@@ -20,8 +20,9 @@
       "required": true,
       "enum": [
         "archive",
-        "tool",
-        "dashboard"
+        "Tools",
+        "dashboard",
+        "Content Hub"
       ]
     },
     "title": {

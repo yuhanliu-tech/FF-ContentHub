@@ -13,6 +13,25 @@ export interface User {
 
 const MOCK_USER: AppUser = { id: "dev-user", username: "DevUser" };
 
+/** First name from email (e.g. ameli@example.com → "Ameli"), or username if no email. */
+export function getDisplayName(user: User | null): string {
+  if (!user) return "";
+  if (user.email && user.email.includes("@")) {
+    const local = user.email.split("@")[0].trim();
+    const first = local.split(/[._-]/)[0]?.trim();
+    if (first) {
+      return first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
+    }
+  }
+  return user.username;
+}
+
+/** True when running on localhost (local dev) or when bypass env is set. */
+function isLocalOrBypass(): boolean {
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") return true;
+  return process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
+}
+
 /** Returns the current user for personalization. Uses stored user when authenticated; in dev can return mock. */
 export function getCurrentUser(): AppUser | null {
   if (typeof window === "undefined") return null;
@@ -20,12 +39,11 @@ export function getCurrentUser(): AppUser | null {
   if (user) {
     return {
       id: String(user.id),
-      username: user.username,
+      username: getDisplayName(user),
       avatarUrl: (user as User & { avatarUrl?: string }).avatarUrl,
     };
   }
-  // TODO: Wire up real Discord session (e.g. NextAuth session) and return user from there.
-  if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+  if (isLocalOrBypass()) {
     return MOCK_USER;
   }
   return null;
@@ -57,10 +75,9 @@ export const getUser = (): User | null => {
 };
 
 export const isAuthenticated = (): boolean => {
-  // Development bypass: Skip authentication if NEXT_PUBLIC_BYPASS_AUTH is true
-  if (process.env.NEXT_PUBLIC_BYPASS_AUTH === 'true') {
-    return true;
-  }
+  // Local dev: skip Discord auth on localhost; production requires real login
+  if (typeof window !== "undefined" && window.location.hostname === "localhost") return true;
+  if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return true;
   return !!getAuthToken();
 };
 

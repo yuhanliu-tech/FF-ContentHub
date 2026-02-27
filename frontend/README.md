@@ -10,6 +10,8 @@ cp .env.example .env.local
 
 Make sure to update `NEXT_PUBLIC_STRAPI_URL` in `.env.local` to point to your Strapi backend (default: `http://localhost:1337`).
 
+Optional: set `NEXT_PUBLIC_CALENDLY_EXPERT_SESSION_URL` to your Calendly event type URL (e.g. `https://calendly.com/yourteam/60min`) to show a “Pick your session time” step after users submit the booking form. Their email is passed so Calendly can pre-fill it.
+
 ## Authentication
 
 This app uses Discord OAuth for authentication through Strapi. Users must login with Discord before accessing the content.
@@ -44,6 +46,10 @@ To learn more about Next.js, take a look at the following resources:
 - [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Build & deployment notes
+
+- **`useSearchParams()`**: Must be wrapped in a `<Suspense>` boundary (e.g. an inner component that uses `useSearchParams` with the page default-export wrapping it in `<Suspense fallback={...}>`). Otherwise the Next.js build fails during static generation. See `app/page.tsx` and `app/connect/discord/redirect/page.tsx` for the pattern.
 
 ## Deploy on Vercel
 

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_STRAPI_URL;
 
-export default function DiscordRedirect() {
+function DiscordRedirectContent() {
   const [text, setText] = useState('Loading...');
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -67,10 +67,10 @@ export default function DiscordRedirect() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 font-didot">
             Authenticating...
           </h2>
-          <p className="mt-2 text-sm text-gray-600">{text}</p>
+          <p className="mt-2 text-sm text-gray-600 font-plex">{text}</p>
           
           {text.includes('Loading') && (
             <div className="mt-4 flex justify-center">
@@ -115,7 +115,7 @@ export default function DiscordRedirect() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800">
+                  <h3 className="text-sm font-medium text-red-800 font-didot">
                     Authentication Failed
                   </h3>
                 </div>
@@ -141,7 +141,7 @@ export default function DiscordRedirect() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-green-800">
+                  <h3 className="text-sm font-medium text-green-800 font-didot">
                     Login Successful!
                   </h3>
                 </div>
@@ -151,5 +151,35 @@ export default function DiscordRedirect() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="max-w-md w-full text-center">
+        <h2 className="mt-6 text-3xl font-extrabold text-gray-900 font-didot">Authenticating...</h2>
+        <p className="mt-2 text-sm text-gray-600 font-plex">Loading...</p>
+        <div className="mt-4 flex justify-center">
+          <svg
+            className="animate-spin h-8 w-8 text-indigo-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function DiscordRedirect() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <DiscordRedirectContent />
+    </Suspense>
   );
 }

@@ -6,9 +6,7 @@
     "pluralName": "appointments",
     "displayName": "Appointment"
   },
-  "options": {
-    "draftAndPublish": false
-  },
+  "options": { "draftAndPublish": false },
   "pluginOptions": {},
   "attributes": {
     "expert": {
@@ -21,14 +19,62 @@
       "type": "relation",
       "relation": "manyToOne",
       "target": "plugin::users-permissions.user",
+      "required": false
+    },
+    "email": {
+      "type": "string",
       "required": true
+    },
+    "company": {
+      "type": "string",
+      "required": false
+    },
+    "requested_experts": {
+      "type": "text",
+      "required": false
+    },
+    "session_date_time": {
+      "type": "text",
+      "required": false
     },
     "preferred_date": {
       "type": "date",
-      "required": true
+      "required": false
     },
     "preferred_time": {
       "type": "string",
+      "required": false
+    },
+    "focus": {
+      "type": "text",
+      "required": true
+    },
+    "key_questions": {
+      "type": "text",
+      "required": true
+    },
+    "desired_format": {
+      "type": "text",
+      "required": true
+    },
+    "attendee_count": {
+      "type": "string",
+      "required": false
+    },
+    "attendee_who": {
+      "type": "text",
+      "required": false
+    },
+    "attendee_genai_familiarity": {
+      "type": "text",
+      "required": false
+    },
+    "model_access": {
+      "type": "text",
+      "required": true
+    },
+    "additional_notes": {
+      "type": "text",
       "required": false
     },
     "message": {

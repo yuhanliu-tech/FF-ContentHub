@@ -3,6 +3,7 @@
 export interface ImageData {
   url: string;
   mime?: string;
+  mimeType?: string; // Strapi v5 sometimes returns this instead of mime
   alternativeText?: string;
   name?: string;
   size?: number;
@@ -34,7 +35,7 @@ export interface Tile {
   link: string; // External or internal link
   link_to_single_type: boolean; // Boolean indicating if tile should link to single type page
   list_items?: ListItem[]; // Direct list items on the tile
-  category: "archive" | "tool"| "dashboard"; // Category enumeration
+  category: "archive" | "tool" | "dashboard" | "content"; // Category enumeration
 }
 
 export interface HomepageHero {
@@ -55,31 +56,33 @@ export interface Logo {
 }
 
 export interface ExpertBio {
-  id: number;
+  id: number | string;
+  order?: number | null;
   name: string;
   slug?: string;
   title: string;
   photo?: ImageData;
-  bio: string; // rich text content
-  advisory_topics?: string | null; // optional richtext: focus areas / example advisory session topics
+  bio: string;
+  advisory_topics?: string | null;
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
 }
 
 export interface ExpertNet {
-  id: number;
+  id: number | string;
   title?: string;
-  description?: string; // rich text content
-  expert_bios?: ExpertBio[]; // Relation to ExpertBio content
+  description?: string;
+  expert_bios?: ExpertBio[];
   createdAt: string;
   updatedAt: string;
   publishedAt: string;
 }
 
 export interface Document {
-  id: number;
+  id: number | string; // Strapi v5 uses documentId (string)
   title: string;
+  description?: string | null;
   file: ImageData;
   createdAt: string;
   updatedAt: string;

@@ -3,6 +3,11 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  // Redirect /tile to /tiles/tile so content-series tile with link_to_single_type works
+  if (pathname === '/tile') {
+    return NextResponse.redirect(new URL('/tiles/tile', request.url));
+  }
   
   // Public routes that don't require authentication
   const publicRoutes = [

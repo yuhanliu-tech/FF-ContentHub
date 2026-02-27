@@ -1,18 +1,13 @@
 import type { Metadata } from "next";
-import { Poppins, Inter } from "next/font/google";
+import { IBM_Plex_Sans } from "next/font/google";
 import "./globals.css";
 import ConditionalLayout from "@/components/ConditionalLayout";
 import { Toaster } from "react-hot-toast";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const ibmPlexSans = IBM_Plex_Sans({
+  variable: "--font-plex",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -27,8 +22,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap"
+        />
+      </head>
       <body
-        className={`${poppins.variable} ${inter.variable} antialiased min-h-screen flex flex-col`}
+        className={`${ibmPlexSans.variable} antialiased min-h-screen flex flex-col font-plex`}
       >
         <ConditionalLayout>
           {children}

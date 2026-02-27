@@ -1,35 +1,52 @@
 // src/components/Navbar.tsx
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
-import { FaBars, FaTimes, FaSignOutAlt, FaChevronDown, FaChevronRight } from "react-icons/fa";
-import { usePathname, useRouter } from "next/navigation";
-import { getLogo, getAllTiles } from "../../lib/api";
-import { Logo, Tile } from "../../lib/types";
-import { getUser, logout, isAuthenticated } from "../../lib/auth";
+import { FaSignOutAlt, FaChevronDown } from "react-icons/fa";
+import { usePathname } from "next/navigation";
+import { getLogo, getAllTiles, getExpertNet } from "../../lib/api";
+import { Logo, Tile, ExpertBio } from "../../lib/types";
+import { getUser, logout, isAuthenticated, getDisplayName } from "../../lib/auth";
+import { slugFromName } from "../../lib/expertAdvisoryTopics";
 import LoginModal from "./LoginModal";
 
-const NAV_LINKS = [
-  { href: "/expert-net", label: "Expert-Net" },
-  { href: "/documents", label: "Documents" },
-];
+function getTileHref(tile: Tile): string {
+  if (tile.link_to_single_type) return `/${tile.slug.toLowerCase()}`;
+  if (tile.link?.trim()) return tile.link.trim();
+  return `/tiles/${tile.slug.toLowerCase()}`;
+}
+
+function expertSlug(bio: ExpertBio): string {
+  return (bio.slug?.trim()) ? bio.slug.trim() : slugFromName(bio.name);
+}
 
 const Navbar = () => {
   const [logo, setLogo] = useState<Logo | null>(null);
   const [user, setUser] = useState<any>(null);
   const [authenticated, setAuthenticated] = useState(false);
   const [loginModalOpen, setLoginModalOpen] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [toolsOpen, setToolsOpen] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(false);
+  const [contentHubOpen, setContentHubOpen] = useState(false);
+  const [expertNetOpen, setExpertNetOpen] = useState(false);
   const [tiles, setTiles] = useState<Tile[]>([]);
+  const [expertBios, setExpertBios] = useState<ExpertBio[]>([]);
   const pathname = usePathname();
-  const router = useRouter();
+  const navRef = useRef<HTMLDivElement>(null);
 
-  const { toolTiles, dashboardTiles } = useMemo(() => {
-    const tools = tiles.filter((t) => t.category === "tool");
-    const dashboard = tiles.filter((t) => t.category === "dashboard");
-    return { toolTiles: tools, dashboardTiles: dashboard };
+  const { memberSessionsTiles, podcastsTiles, additionalContentTiles } = useMemo(() => {
+    const memberSessions = tiles.filter((t) =>
+      t.category === "Member sessions" || t.category === "dashboard"
+    );
+    const podcasts = tiles.filter((t) =>
+      t.category === "Podcasts" || t.category === "Tools"
+    );
+    const additional = tiles.filter((t) =>
+      t.category === "Additional content" || t.category === "Content Hub"
+    );
+    return {
+      memberSessionsTiles: memberSessions,
+      podcastsTiles: podcasts,
+      additionalContentTiles: additional,
+    };
   }, [tiles]);
 
   useEffect(() => {
@@ -55,86 +72,255 @@ const Navbar = () => {
   }, []);
 
   useEffect(() => {
-    if (!menuOpen) return;
-    const fetchTiles = async () => {
+    const loadNavData = async () => {
       try {
-        const { tiles: data } = await getAllTiles("");
-        setTiles(data ?? []);
+        const { tiles: tileData } = await getAllTiles("");
+        setTiles(tileData ?? []);
       } catch (err) {
-        console.error("Error fetching tiles for menu:", err);
+        console.error("Error fetching tiles for nav:", err);
+      }
+      try {
+        const expertNet = await getExpertNet();
+        setExpertBios(expertNet?.expert_bios ?? []);
+      } catch (err) {
+        console.error("Error fetching experts for nav:", err);
       }
     };
-    fetchTiles();
-  }, [menuOpen]);
+    loadNavData();
+  }, []);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setContentHubOpen(false);
+        setExpertNetOpen(false);
+      }
+    };
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setContentHubOpen(false);
+        setExpertNetOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
   };
 
-  const handleTileClick = (tile: Tile) => {
-    setMenuOpen(false);
-    if (tile.link_to_single_type) {
-      router.push(`/${tile.slug.toLowerCase()}`);
-    } else if (tile.link?.trim()) {
-      window.location.href = tile.link;
-    } else {
-      router.push(`/tiles/${tile.slug.toLowerCase()}`);
-    }
-  };
+  const isContentHubActive = pathname === "/" || pathname.startsWith("/tiles/") || pathname === "/podcasts";
+  const isExpertNetActive = pathname === "/expert-net" || pathname.startsWith("/expert-net/");
 
   return (
-    <div className="w-full sticky top-0 py-4 sm:py-5 z-50" style={{ background: "linear-gradient(135deg, #1a3f69 0%, #2a5a8f 50%, #1a3f69 100%)" }}>
+    <div
+      ref={navRef}
+      className="w-full sticky top-0 py-7 sm:py-9 z-50"
+      style={{ background: "linear-gradient(135deg, #1a3f69 0%, #2a5a8f 50%, #1a3f69 100%)" }}
+    >
       <nav className="max-w-6xl mx-auto flex justify-between items-center px-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setMenuOpen(true)}
-            className="p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
-            aria-label="Open menu"
-          >
-            <FaBars className="w-5 h-5" />
-          </button>
-          <Link href="/" className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="flex items-center gap-4">
             {logo && logo.logo && logo.logo.length > 0 && (
               <img
                 src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${logo.logo[0].url}`}
-                alt="FF Content Hub Logo"
-                className="h-10 w-auto"
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                alt="Feedforward Member Portal Logo"
+                className="h-14 sm:h-16 w-auto"
+                onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
             )}
-            <h1 className="font-semibold text-xl text-white font-poppins tracking-tight">
-              Content Hub
+            <h1 className="font-semibold text-2xl sm:text-3xl text-white font-didot tracking-tight">
+              Feedforward Member Portal
             </h1>
           </Link>
         </div>
 
         <div className="flex items-center gap-6">
-          {NAV_LINKS.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`relative text-sm font-inter transition-colors duration-200 pb-0.5 ${
-                  isActive
-                    ? "text-brand-orange"
-                    : "text-white hover:text-brand-orange"
-                }`}
-              >
-                {link.label}
-                {isActive && (
-                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-brand-orange" />
+          {/* Content Hub dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setContentHubOpen((v) => !v);
+                setExpertNetOpen(false);
+              }}
+              aria-expanded={contentHubOpen}
+              aria-haspopup="true"
+              className={`relative inline-flex items-center gap-1 text-base font-plex transition-colors duration-200 pb-0.5 ${
+                isContentHubActive ? "text-brand-orange" : "text-white hover:text-brand-orange"
+              }`}
+            >
+              Content Hub
+              <FaChevronDown className={`w-3.5 h-3.5 transition-transform ${contentHubOpen ? "rotate-180" : ""}`} />
+              {isContentHubActive && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-brand-orange" />
+              )}
+            </button>
+            {contentHubOpen && (
+              <div className="absolute top-full left-0 mt-1 min-w-[220px] rounded-lg bg-white shadow-xl border border-gray-100 py-2 z-[60]">
+                <div className="border-b border-gray-100 pb-2 mb-2">
+                  <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider font-plex">
+                    Member sessions
+                  </p>
+                  {memberSessionsTiles.length === 0 ? (
+                    <p className="px-3 py-1 text-sm text-gray-400">None</p>
+                  ) : (
+                    memberSessionsTiles.map((tile) => {
+                      const href = getTileHref(tile);
+                      const isExternal = href.startsWith("http");
+                      return isExternal ? (
+                        <a
+                          key={tile.id}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </a>
+                      ) : (
+                        <Link
+                          key={tile.id}
+                          href={href}
+                          onClick={() => setContentHubOpen(false)}
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+                <div className="border-b border-gray-100 pb-2 mb-2">
+                  <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider font-plex">
+                    Podcasts
+                  </p>
+                  {podcastsTiles.length === 0 ? (
+                    <p className="px-3 py-1 text-sm text-gray-400">None</p>
+                  ) : (
+                    podcastsTiles.map((tile) => {
+                      const href = getTileHref(tile);
+                      const isExternal = href.startsWith("http");
+                      return isExternal ? (
+                        <a
+                          key={tile.id}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </a>
+                      ) : (
+                        <Link
+                          key={tile.id}
+                          href={href}
+                          onClick={() => setContentHubOpen(false)}
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+                <div>
+                  <p className="px-3 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider font-plex">
+                    Additional content
+                  </p>
+                  {additionalContentTiles.length === 0 ? (
+                    <p className="px-3 py-1 text-sm text-gray-400">None</p>
+                  ) : (
+                    additionalContentTiles.map((tile) => {
+                      const href = getTileHref(tile);
+                      const isExternal = href.startsWith("http");
+                      return isExternal ? (
+                        <a
+                          key={tile.id}
+                          href={href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </a>
+                      ) : (
+                        <Link
+                          key={tile.id}
+                          href={href}
+                          onClick={() => setContentHubOpen(false)}
+                          className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                        >
+                          {tile.title}
+                        </Link>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Expert Network dropdown */}
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => {
+                setExpertNetOpen((v) => !v);
+                setContentHubOpen(false);
+              }}
+              aria-expanded={expertNetOpen}
+              aria-haspopup="true"
+              className={`relative inline-flex items-center gap-1 text-base font-plex transition-colors duration-200 pb-0.5 ${
+                isExpertNetActive ? "text-brand-orange" : "text-white hover:text-brand-orange"
+              }`}
+            >
+              Expert Network
+              <FaChevronDown className={`w-3.5 h-3.5 transition-transform ${expertNetOpen ? "rotate-180" : ""}`} />
+              {isExpertNetActive && (
+                <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-brand-orange" />
+              )}
+            </button>
+            {expertNetOpen && (
+              <div className="absolute top-full left-0 mt-1 min-w-[220px] max-h-[70vh] overflow-y-auto rounded-lg bg-white shadow-xl border border-gray-100 py-2 z-[60]">
+                <Link
+                  href="/expert-net"
+                  onClick={() => setExpertNetOpen(false)}
+                  className="block px-3 py-2 text-sm font-medium text-brand-blue hover:bg-peach/30 font-plex border-b border-gray-100"
+                >
+                  All Experts
+                </Link>
+                {expertBios.length === 0 ? (
+                  <p className="px-3 py-2 text-sm text-gray-400">No experts</p>
+                ) : (
+                  expertBios.map((bio) => {
+                    const slug = expertSlug(bio);
+                    return (
+                      <Link
+                        key={bio.id}
+                        href={`/expert-net/${slug}`}
+                        onClick={() => setExpertNetOpen(false)}
+                        className="block px-3 py-2 text-sm text-brand-blue hover:bg-peach/30 font-plex"
+                      >
+                        {bio.name}
+                      </Link>
+                    );
+                  })
                 )}
-              </Link>
-            );
-          })}
+              </div>
+            )}
+          </div>
 
           {authenticated && user ? (
             <>
               <Link
                 href="/users/appointments"
-                className={`relative text-sm font-inter transition-colors duration-200 pb-0.5 ${
+                className={`relative text-base font-plex transition-colors duration-200 pb-0.5 ${
                   pathname === "/users/appointments"
                     ? "text-brand-orange"
                     : "text-white hover:text-brand-orange"
@@ -145,12 +331,12 @@ const Navbar = () => {
                   <span className="absolute -bottom-1 left-0 right-0 h-0.5 rounded-full bg-brand-orange" />
                 )}
               </Link>
-              <span className="text-white/70 text-sm font-inter">
-                Hi, {user.username}
+              <span className="text-white/70 text-base font-plex">
+                Hi, {getDisplayName(user)}
               </span>
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-2 bg-brand-orange hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200"
+                className="flex items-center gap-2 bg-brand-orange hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-base font-medium transition-colors duration-200"
                 title="Logout"
               >
                 <FaSignOutAlt size={13} />
@@ -161,99 +347,13 @@ const Navbar = () => {
             <button
               type="button"
               onClick={() => setLoginModalOpen(true)}
-              className="bg-brand-orange hover:bg-amber-500 text-white px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors duration-200"
+              className="bg-brand-orange hover:bg-amber-500 text-white px-3.5 py-2 rounded-lg text-base font-medium transition-colors duration-200"
             >
               Log in
             </button>
           )}
         </div>
       </nav>
-
-      {/* Burger menu overlay + slide-out panel */}
-      {menuOpen && (
-        <>
-          <button
-            type="button"
-            aria-label="Close menu"
-            className="fixed inset-0 bg-black/40 z-[60] transition-opacity"
-            onClick={() => setMenuOpen(false)}
-          />
-          <aside
-            className="nav-drawer fixed top-0 left-0 h-full w-[min(320px,85vw)] bg-white z-[70] shadow-xl flex flex-col"
-            aria-label="Navigation menu"
-          >
-            <div className="flex items-center justify-between p-4 border-b border-gray-100">
-              <span className="font-semibold text-brand-blue font-poppins">Menu</span>
-              <button
-                type="button"
-                onClick={() => setMenuOpen(false)}
-                className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 hover:text-brand-blue transition-colors"
-                aria-label="Close menu"
-              >
-                <FaTimes className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto py-2">
-              <div className="border-b border-gray-100">
-                <button
-                  type="button"
-                  className="nav-drawer-section w-full flex items-center justify-between px-4 py-3 text-left text-brand-blue font-medium font-inter hover:bg-gray-50"
-                  onClick={() => setToolsOpen(!toolsOpen)}
-                >
-                  Tools
-                  {toolsOpen ? <FaChevronDown className="w-4 h-4" /> : <FaChevronRight className="w-4 h-4" />}
-                </button>
-                {toolsOpen && (
-                  <div className="nav-drawer-sub pl-4 pb-2">
-                    {toolTiles.length === 0 ? (
-                      <p className="px-4 py-2 text-sm text-gray-500">Loading…</p>
-                    ) : (
-                      toolTiles.map((tile) => (
-                        <button
-                          key={tile.id}
-                          type="button"
-                          className="nav-drawer-item block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-peach/40 hover:text-brand-blue rounded-r-lg font-inter"
-                          onClick={() => handleTileClick(tile)}
-                        >
-                          {tile.title}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-              <div className="border-b border-gray-100">
-                <button
-                  type="button"
-                  className="nav-drawer-section w-full flex items-center justify-between px-4 py-3 text-left text-brand-blue font-medium font-inter hover:bg-gray-50"
-                  onClick={() => setDashboardOpen(!dashboardOpen)}
-                >
-                  Dashboard
-                  {dashboardOpen ? <FaChevronDown className="w-4 h-4" /> : <FaChevronRight className="w-4 h-4" />}
-                </button>
-                {dashboardOpen && (
-                  <div className="nav-drawer-sub pl-4 pb-2">
-                    {dashboardTiles.length === 0 ? (
-                      <p className="px-4 py-2 text-sm text-gray-500">Loading…</p>
-                    ) : (
-                      dashboardTiles.map((tile) => (
-                        <button
-                          key={tile.id}
-                          type="button"
-                          className="nav-drawer-item block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-peach/40 hover:text-brand-blue rounded-r-lg font-inter"
-                          onClick={() => handleTileClick(tile)}
-                        >
-                          {tile.title}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </aside>
-        </>
-      )}
 
       <LoginModal isOpen={loginModalOpen} onClose={() => setLoginModalOpen(false)} />
     </div>

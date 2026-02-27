@@ -1,16 +1,17 @@
 // src/app/page.tsx
 /* eslint-disable @next/next/no-img-element */
 "use client";
-import { useEffect, useState, useMemo } from "react";
+import { Suspense, useEffect, useState, useMemo } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { getAllTiles, getHomepageHero } from "../../lib/api";
-import { Tile, HomepageHero } from "@/../lib/types";
-import { isAuthenticated, getUser } from "../../lib/auth";
+import { getAllTiles, getHomepageHero, getLogo } from "../../lib/api";
+import { Tile, HomepageHero, Logo } from "@/../lib/types";
+import { isAuthenticated, getUser, getDisplayName } from "../../lib/auth";
 import Loader from "@/components/Loader";
 
-export default function Home() {
+function HomeContent() {
   const [tiles, setTiles] = useState<Tile[]>([]);
   const [hero, setHero] = useState<HomepageHero | null>(null);
+  const [logo, setLogo] = useState<Logo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -28,8 +29,8 @@ export default function Home() {
     }
     setAuthChecked(true);
     const user = getUser();
-    if (user?.username) {
-      setUserName(user.username);
+    if (user) {
+      setUserName(getDisplayName(user));
     }
   }, [router]);
 
@@ -38,12 +39,14 @@ export default function Home() {
 
     const fetchData = async () => {
       try {
-        const [tilesResponse, heroResponse] = await Promise.all([
+        const [tilesResponse, heroResponse, logoData] = await Promise.all([
           getAllTiles(searchQuery),
-          getHomepageHero()
+          getHomepageHero(),
+          getLogo()
         ]);
         setTiles(tilesResponse.tiles);
         setHero(heroResponse);
+        setLogo(logoData ?? null);
       } catch (error) {
         setError("Error fetching content.");
         console.error("Error fetching content:", error);
@@ -54,10 +57,22 @@ export default function Home() {
 
     fetchData();
   }, [searchQuery, authChecked]);
-  const { toolTiles, contentSeriesTiles } = useMemo(() => {
-    const tools = tiles.filter(tile => tile.category === "tool");
+  const CONTENT_TILE_ORDER = ["Member sessions", "Podcasts", "Additional content"];
+
+  const { toolTiles, contentSeriesTiles, contentTiles } = useMemo(() => {
+    const tools = tiles.filter(tile => tile.category === "Tools");
     const contentSeries = tiles.filter(tile => tile.category === "dashboard");
-    return { toolTiles: tools, contentSeriesTiles: contentSeries };
+    const content = tiles
+      .filter(tile => tile.category === "Content Hub")
+      .sort((a, b) => {
+        const aIdx = CONTENT_TILE_ORDER.indexOf(a.title);
+        const bIdx = CONTENT_TILE_ORDER.indexOf(b.title);
+        if (aIdx === -1 && bIdx === -1) return 0;
+        if (aIdx === -1) return 1;
+        if (bIdx === -1) return -1;
+        return aIdx - bIdx;
+      });
+    return { toolTiles: tools, contentSeriesTiles: contentSeries, contentTiles: content };
   }, [tiles]);
 
   const handleTileClick = (tile: Tile) => {
@@ -78,7 +93,7 @@ export default function Home() {
       style={{ "--delay": `${idx * 80}ms` } as React.CSSProperties}
       onClick={() => handleTileClick(tile)}
     >
-      <div className={`relative h-44 w-full overflow-hidden ${fallbackBg}`}>
+      <div className={`relative h-56 w-full overflow-hidden ${fallbackBg}`}>
         {tile.cover?.url && (
           <img
             src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${tile.cover.url}`}
@@ -88,12 +103,12 @@ export default function Home() {
           />
         )}
       </div>
-      <div className="p-5">
-        <h3 className="text-sm font-semibold font-poppins text-primary line-clamp-2">
+      <div className="p-6">
+        <h3 className="text-base font-semibold font-didot text-primary line-clamp-2">
           {tile.title}
         </h3>
         {tile.description && (
-          <p className="text-secondary mt-2 text-sm leading-relaxed line-clamp-3 font-inter">
+          <p className="text-secondary mt-2 text-sm leading-relaxed line-clamp-3 font-plex">
             {tile.description}
           </p>
         )}
@@ -116,27 +131,45 @@ export default function Home() {
           </div>
         )}
         {error && (
-          <p className="text-red-600 text-center py-12 font-inter">{error}</p>
+          <p className="text-red-600 text-center py-12 font-plex">{error}</p>
         )}
 
         {!loading && !error && (
           <>
             {/* ─── Hero Section ───────────────────────── */}
-            {hero && (
-              <section className="mb-16 card-animate-in">
-                <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-poppins mb-3">
-                  {userName ? `Welcome back, ${userName}!` : "Welcome!"}
-                </h1>
-                <p className="text-base md:text-lg text-subtitle leading-relaxed max-w-xl font-inter mb-6">
-                  Here is your Feedforward content portal. Feel free to share.
-                </p>
-                {hero.description && !/lorem\s+ipsum/i.test(hero.description.trim()) && (
-                  <p className="text-base md:text-lg text-subtitle leading-relaxed max-w-xl font-inter mb-6">
-                    {hero.description}
+            <section className="mb-16 card-animate-in">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-6 sm:gap-8">
+                {/* FFC Mark (gold) from Strapi: second logo = gold mark, else first logo */}
+                {logo?.logo?.length ? (
+                  <div className="shrink-0 flex items-center min-h-[4rem]">
+                    <img
+                      src={(() => {
+                        const base = process.env.NEXT_PUBLIC_STRAPI_URL || "";
+                        const item = logo.logo[1] ?? logo.logo[0];
+                        const path = item?.url ?? "";
+                        return path.startsWith("http") ? path : `${base.replace(/\/$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+                      })()}
+                      alt="FFC Mark"
+                      className="h-16 md:h-20 w-auto object-contain max-w-[180px]"
+                      onError={(e) => { e.currentTarget.style.display = "none"; }}
+                    />
+                  </div>
+                ) : null}
+                <div className="min-w-0">
+                  <h1 className="text-3xl md:text-4xl font-semibold text-brand-blue font-didot mb-3">
+                    {userName ? `Welcome back, ${userName}!` : "Welcome to Feedforward!"}
+                  </h1>
+                  <p className="text-lg md:text-xl text-subtitle leading-relaxed max-w-xl font-plex mb-6">
+                    Here is your Feedforward content portal. Feel free to share.
                   </p>
-                )}
-              </section>
-            )}
+                  {hero?.description && !/lorem\s+ipsum/i.test(hero.description.trim()) && (
+                    <p className="text-base md:text-lg text-subtitle leading-relaxed max-w-xl font-plex mb-6">
+                      {hero.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </section>
 
             {/* ─── Gradient Divider ───────────────────── */}
             <div className="gradient-divider mb-14" />
@@ -145,15 +178,15 @@ export default function Home() {
             {toolTiles.length > 0 && (
               <section id="tools-section" className="mb-14">
                 <header className="mb-6">
-                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-poppins text-brand-blue">
+                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-didot text-brand-blue">
                     <span className="inline-block w-8 h-1 rounded-full bg-brand-orange" />
                     Tools
                   </h2>
-                  <p className="text-sm text-subtitle font-inter">
+                  <p className="text-sm text-subtitle font-plex">
                     Internal utilities and helpers to navigate and use your Feedforward content faster.
                   </p>
                 </header>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {toolTiles.map((tile, idx) => renderTileCard(tile, idx, "bg-brand-blue"))}
                 </div>
               </section>
@@ -168,22 +201,45 @@ export default function Home() {
             {contentSeriesTiles.length > 0 && (
               <section className="mb-14">
                 <header className="mb-6">
-                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-poppins text-brand-blue">
+                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-didot text-brand-blue">
                     <span className="inline-block w-8 h-1 rounded-full bg-brand-orange" />
                     Dashboard
                   </h2>
-                  <p className="text-sm text-subtitle font-inter">
+                  <p className="text-sm text-subtitle font-plex">
                     Curated content series and overview tiles that keep your initiatives on track.
                   </p>
                 </header>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {contentSeriesTiles.map((tile, idx) => renderTileCard(tile, idx, "bg-brand-blue"))}
                 </div>
               </section>
             )}
 
+            {/* ─── Gradient Divider ───────────────────── */}
+            {contentTiles.length > 0 && (
+              <div className="gradient-divider mb-14" />
+            )}
+
+            {/* ─── Content Section ───────────────────── */}
+            {contentTiles.length > 0 && (
+              <section id="content-section" className="mb-14">
+                <header className="mb-6">
+                  <h2 className="flex items-center gap-3 text-2xl font-bold mb-2 font-didot text-brand-blue">
+                    <span className="inline-block w-8 h-1 rounded-full bg-brand-orange" />
+                    Content
+                  </h2>
+                  <p className="text-sm text-subtitle font-plex">
+                    Articles, guides, and other content to support your work.
+                  </p>
+                </header>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {contentTiles.map((tile, idx) => renderTileCard(tile, idx, "bg-brand-blue"))}
+                </div>
+              </section>
+            )}
+
             {tiles.length === 0 && (
-              <p className="text-secondary text-center py-16 font-inter">
+              <p className="text-secondary text-center py-16 font-plex">
                 No tiles available at the moment.
               </p>
             )}
@@ -191,5 +247,17 @@ export default function Home() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={
+      <div className="home-bg min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
   );
 }

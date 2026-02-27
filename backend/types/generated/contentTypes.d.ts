@@ -441,14 +441,23 @@ export interface ApiAppointmentAppointment extends Struct.CollectionTypeSchema {
     draftAndPublish: false;
   };
   attributes: {
+    additional_notes: Schema.Attribute.Text;
+    attendee_count: Schema.Attribute.String;
+    attendee_genai_familiarity: Schema.Attribute.Text;
+    attendee_who: Schema.Attribute.Text;
+    company: Schema.Attribute.String;
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
+    desired_format: Schema.Attribute.Text & Schema.Attribute.Required;
+    email: Schema.Attribute.String & Schema.Attribute.Required;
     expert: Schema.Attribute.Relation<
       'manyToOne',
       'api::expert-bio.expert-bio'
     > &
       Schema.Attribute.Required;
+    focus: Schema.Attribute.Text & Schema.Attribute.Required;
+    key_questions: Schema.Attribute.Text & Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -456,9 +465,12 @@ export interface ApiAppointmentAppointment extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     message: Schema.Attribute.Text;
-    preferred_date: Schema.Attribute.Date & Schema.Attribute.Required;
+    model_access: Schema.Attribute.Text & Schema.Attribute.Required;
+    preferred_date: Schema.Attribute.Date;
     preferred_time: Schema.Attribute.String;
     publishedAt: Schema.Attribute.DateTime;
+    requested_experts: Schema.Attribute.Text;
+    session_date_time: Schema.Attribute.Text;
     status: Schema.Attribute.Enumeration<
       ['requested', 'confirmed', 'cancelled', 'completed']
     > &
@@ -470,8 +482,7 @@ export interface ApiAppointmentAppointment extends Struct.CollectionTypeSchema {
     user: Schema.Attribute.Relation<
       'manyToOne',
       'plugin::users-permissions.user'
-    > &
-      Schema.Attribute.Required;
+    >;
   };
 }
 
@@ -516,7 +527,9 @@ export interface ApiDocumentDocument extends Struct.CollectionTypeSchema {
     createdAt: Schema.Attribute.DateTime;
     createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
-    file: Schema.Attribute.Media<'files'> & Schema.Attribute.Required;
+    description: Schema.Attribute.Text;
+    file: Schema.Attribute.Media<'files' | 'audios'> &
+      Schema.Attribute.Required;
     locale: Schema.Attribute.String & Schema.Attribute.Private;
     localizations: Schema.Attribute.Relation<
       'oneToMany',
@@ -554,6 +567,7 @@ export interface ApiExpertBioExpertBio extends Struct.CollectionTypeSchema {
     > &
       Schema.Attribute.Private;
     name: Schema.Attribute.String & Schema.Attribute.Required;
+    order: Schema.Attribute.Integer;
     photo: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'>;
     publishedAt: Schema.Attribute.DateTime;
     slug: Schema.Attribute.UID<'name'> & Schema.Attribute.Required;
@@ -730,7 +744,9 @@ export interface ApiTileTile extends Struct.CollectionTypeSchema {
     draftAndPublish: true;
   };
   attributes: {
-    category: Schema.Attribute.Enumeration<['archive', 'tool', 'dashboard']> &
+    category: Schema.Attribute.Enumeration<
+      ['archive', 'Tools', 'dashboard', 'Content Hub']
+    > &
       Schema.Attribute.Required;
     cover: Schema.Attribute.Media<'images' | 'files' | 'videos' | 'audios'> &
       Schema.Attribute.Required;

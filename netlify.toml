@@ -1,0 +1,12 @@
+# Use this when you deploy the FULL REPO (e.g. after connecting GitHub).
+# When you upload ONLY the frontend folder (drag-and-drop), use the config in frontend/netlify.toml instead.
+# Base directory is "frontend" so only the frontend is built.
+# Backend (Strapi) must be deployed elsewhere (e.g. Railway, Render).
+
+[build]
+  base    = "frontend"
+  command = "npm ci && npm run build"
+  publish = "frontend/.next"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"

@@ -1,0 +1,13 @@
+# Keep Railway upload under 40MB to avoid 404 on deploy
+node_modules
+.git
+.tmp
+dist
+build
+*.log
+.env
+.env.*
+.strapi
+coverage
+*.sqlite
+*.sqlite3

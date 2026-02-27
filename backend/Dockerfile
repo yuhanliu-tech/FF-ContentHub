@@ -1,0 +1,20 @@
+# Node 20 LTS (matches package.json engines)
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm ci
+
+# Copy source and build
+COPY . .
+ENV NODE_ENV=production
+RUN npm run build
+
+# Runtime
+ENV HOST=0.0.0.0
+ENV PORT=1337
+EXPOSE 1337
+
+CMD ["npm", "run", "start"]

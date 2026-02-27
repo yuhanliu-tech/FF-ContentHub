@@ -20,22 +20,22 @@ import { FaUser, FaArrowLeft, FaCalendarCheck } from "react-icons/fa";
 
 const markdownComponents = {
   h1: ({ children }: { children?: React.ReactNode }) => (
-    <h1 className="text-2xl font-bold text-brand-blue mb-3 font-poppins">
+    <h1 className="text-2xl font-bold text-brand-blue mb-3 font-didot">
       {children}
     </h1>
   ),
   h2: ({ children }: { children?: React.ReactNode }) => (
-    <h2 className="text-xl font-bold text-brand-blue mb-2 font-poppins">
+    <h2 className="text-xl font-bold text-brand-blue mb-2 font-didot">
       {children}
     </h2>
   ),
   h3: ({ children }: { children?: React.ReactNode }) => (
-    <h3 className="text-lg font-semibold text-brand-blue mb-2 font-poppins">
+    <h3 className="text-lg font-semibold text-brand-blue mb-2 font-didot">
       {children}
     </h3>
   ),
   h4: ({ children }: { children?: React.ReactNode }) => (
-    <h4 className="text-base font-semibold text-brand-blue mb-2 font-poppins">
+    <h4 className="text-base font-semibold text-brand-blue mb-2 font-didot">
       {children}
     </h4>
   ),
@@ -89,7 +89,7 @@ function AdvisoryTopicsSection({
 }) {
   if (richtext?.trim()) {
     return (
-      <div className="prose prose-sm max-w-none text-gray-700 font-inter">
+      <div className="prose prose-sm max-w-none text-gray-700 font-plex">
         <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
           {richtext}
         </ReactMarkdown>
@@ -101,10 +101,10 @@ function AdvisoryTopicsSection({
     <div className="space-y-6">
       {topics.map((t, i) => (
         <div key={i} className="border-l-2 border-brand-orange pl-4">
-          <h4 className="text-base font-semibold text-brand-blue mb-2 font-poppins">
+          <h4 className="text-base font-semibold text-brand-blue mb-2 font-didot">
             {t.title}
           </h4>
-          <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm font-inter">
+          <ul className="list-disc list-inside space-y-1 text-gray-700 text-sm font-plex">
             {t.points.map((point, j) => (
               <li key={j}>{point}</li>
             ))}
@@ -181,7 +181,7 @@ export default function ExpertProfilePage({
         <p className="text-gray-600 mb-4">Expert not found.</p>
         <Link
           href="/expert-net"
-          className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-orange transition-colors font-inter text-sm font-medium"
+          className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-orange transition-colors font-plex text-sm font-medium"
         >
           <FaArrowLeft size={12} /> Back to Expert Network
         </Link>
@@ -198,7 +198,7 @@ export default function ExpertProfilePage({
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-6 pt-6">
-        <BackToHome />
+        <BackToHome label="Expert site" href="/expert-net" />
       </div>
 
       <article className="max-w-4xl mx-auto px-6 pb-16">
@@ -223,24 +223,24 @@ export default function ExpertProfilePage({
             <div className="flex-1 p-8 md:p-10">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-brand-blue font-poppins leading-snug">
+                  <h1 className="text-2xl md:text-3xl font-bold text-brand-blue font-didot leading-snug">
                     {expert.name}
                   </h1>
-                  <p className="mt-2 text-sm font-medium text-brand-orange font-inter">
+                  <p className="mt-2 text-sm font-medium text-brand-orange font-plex">
                     {expert.title}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={scrollToBooking}
-                  className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-brand-orange px-4 py-2.5 text-sm font-medium text-white font-inter hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
+                  className="shrink-0 inline-flex items-center gap-2 rounded-lg bg-brand-orange px-4 py-2.5 text-sm font-medium text-white font-plex hover:bg-amber-500 focus:outline-none focus:ring-2 focus:ring-brand-orange focus:ring-offset-2"
                 >
                   <FaCalendarCheck size={14} /> Book session
                 </button>
               </div>
               <div className="mt-3 h-px w-12 bg-brand-orange/40" />
 
-              <div className="mt-6 prose prose-sm max-w-none text-gray-700 font-inter">
+              <div className="mt-6 prose prose-sm max-w-none text-gray-700 font-plex">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={markdownComponents}
@@ -255,7 +255,7 @@ export default function ExpertProfilePage({
         {/* Focus areas / Example advisory session topics */}
         {hasAdvisoryContent && (
           <section className="mt-10">
-            <h2 className="text-xl font-bold text-brand-blue font-poppins mb-4">
+            <h2 className="text-xl font-bold text-brand-blue font-didot mb-4">
               Focus Areas & Example Advisory Session Topics
             </h2>
             <div className="bg-white rounded-2xl shadow-sm border border-gray-200/80 p-8">
@@ -270,20 +270,20 @@ export default function ExpertProfilePage({
         {/* Book a session */}
         {authChecked && (
           <section ref={bookSectionRef} id="book-session" className="mt-10 scroll-mt-6">
-            <h2 className="text-xl font-bold text-brand-blue font-poppins mb-4 flex items-center gap-2">
+            <h2 className="text-xl font-bold text-brand-blue font-didot mb-4 flex items-center gap-2">
               <FaCalendarCheck /> Book a session
             </h2>
             {isLoggedIn ? (
               <BookingForm expert={expert} />
             ) : (
               <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                <p className="text-gray-700 font-inter mb-4">
+                <p className="text-gray-700 font-plex mb-4">
                   Log in to request an appointment with {expert.name}.
                 </p>
                 <button
                   type="button"
                   onClick={() => setLoginModalOpen(true)}
-                  className="rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white font-inter hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
+                  className="rounded-lg bg-brand-blue px-4 py-2.5 text-sm font-medium text-white font-plex hover:bg-brand-blue/90 focus:outline-none focus:ring-2 focus:ring-brand-blue focus:ring-offset-2"
                 >
                   Log in to request a session
                 </button>
@@ -294,7 +294,7 @@ export default function ExpertProfilePage({
 
         <Link
           href="/expert-net"
-          className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-orange mt-8 transition-colors font-inter text-sm font-medium"
+          className="inline-flex items-center gap-2 text-brand-blue hover:text-brand-orange mt-8 transition-colors font-plex text-sm font-medium"
         >
           <FaArrowLeft size={12} /> Back to Expert Network
         </Link>
