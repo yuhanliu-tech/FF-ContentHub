@@ -35,7 +35,7 @@ export interface Tile {
   link: string; // External or internal link
   link_to_single_type: boolean; // Boolean indicating if tile should link to single type page
   list_items?: ListItem[]; // Direct list items on the tile
-  category: "archive" | "tool" | "dashboard" | "content"; // Category enumeration
+  category: "archive" | "tool" | "dashboard" | "content" | "experts"; // Category enumeration
 }
 
 export interface HomepageHero {

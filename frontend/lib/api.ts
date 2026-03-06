@@ -95,7 +95,9 @@ function normalizeLogoItem(media: unknown): { url: string; mime?: string; name?:
 // Get logo content. Returns null on network/API error. Normalizes logo to always be an array of { url, ... } (Strapi v4/v5).
 // Tries singular path first (single types in some Strapi setups use singular API ID).
 export const getLogo = async (): Promise<{ id: number; logo: { url: string; mime?: string; name?: string; alternativeText?: string }[]; createdAt: string; updatedAt: string; publishedAt: string } | null> => {
-  for (const path of ["api/logo?populate[logo]=*", "api/logos?populate[logo]=*"]) {
+  // Do not send populate from client: Strapi 5 can reject with "Invalid key related at logo.related".
+  // The backend logo controller forces a safe populate so media is still returned.
+  for (const path of ["api/logo", "api/logos"]) {
     try {
       const response = await api.get(path);
       const data = response.data?.data;
