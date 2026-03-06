@@ -110,33 +110,39 @@ const ExpertNetPage = () => {
         {/* ─── Header (main-page style: title + elegant orange line) ─── */}
         <section className="max-w-6xl mx-auto px-6 pt-8 pb-2 card-animate-in">
           <BackToHome label="Member Portal" />
-          <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-didot">
-                Founding team & Expert Advisory Network
-              </h1>
-              <p className="text-base text-subtitle font-plex mt-2 w-full">
-                Access world-class expertise through 60-minute virtual sessions with leading minds in AI, strategy, and organizational transformation.
-              </p>
-              <p className="text-base text-subtitle font-plex mt-2 mb-6">
-                If you have any questions, please email{" "}
-                <a
-                  href="mailto:maddie@feedforward.ai"
-                  className="text-subtitle hover:underline underline-offset-2"
-                >
-                  maddie@feedforward.ai
-                </a>
-                .
-              </p>
+          <div className="mt-4">
+            <h1 className="text-2xl md:text-3xl font-semibold text-brand-blue font-didot">
+              Founding Team & Expert Advisory Network
+            </h1>
+            <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-base text-subtitle font-plex w-full">
+                  Expert sessions are company-specific advisory and consultation sessions, not speaking engagements.
+                  <br />
+                  Many experts in our network also do speaking engagements at different rates. 
+                  <br />
+                  If you're interested in a speaking engagement, Feedforward can facilitate.
+                </p>
+                <p className="text-base text-subtitle font-plex mt-2 mb-6">
+                  If you have any questions, please email{" "}
+                  <a
+                    href="mailto:maddie@feedforward.ai"
+                    className="text-subtitle hover:underline underline-offset-2"
+                  >
+                    maddie@feedforward.ai
+                  </a>
+                  .
+                </p>
+              </div>
+              <a
+                href="#faq"
+                onClick={scrollToFaq}
+                className="inline-flex items-center gap-2 shrink-0 px-3.5 py-2.5 text-sm font-medium text-brand-blue border border-brand-blue rounded-lg hover:bg-brand-blue hover:text-white transition-colors font-plex text-center"
+              >
+                <FaChevronDown size={12} className="shrink-0" />
+                Click here for FAQs and more info
+              </a>
             </div>
-            <a
-              href="#faq"
-              onClick={scrollToFaq}
-              className="inline-flex shrink-0 items-center gap-2 px-4 py-2.5 text-sm font-medium text-brand-blue border border-brand-blue rounded-lg hover:bg-brand-blue hover:text-white transition-colors font-plex"
-            >
-              <FaChevronDown size={12} />
-              See FAQ
-            </a>
           </div>
           <div className="gradient-divider mb-14" />
         </section>
