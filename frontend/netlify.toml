@@ -1,9 +1,25 @@
 # Use this when you deploy ONLY the frontend folder to Netlify (drag-and-drop).
 # Build and publish are relative to this folder.
-
+# Publish must be set and different from base (.) or the plugin errors: "Your publish
+# directory cannot be the same as the base directory". The plugin still controls how
+# /_next/static is served; this value just satisfies the check.
 [build]
   command = "npm ci && npm run build"
   publish = ".next"
+
+# If requests hit /next/ instead of /_next/ (e.g. proxy stripping underscore), serve _next content
+[[redirects]]
+  from = "/next/*"
+  to = "/_next/:splat"
+  status = 200
+
+# Redirect old default Netlify URL to custom domain (use your real Netlify subdomain below)
+[[redirects]]
+  from = "/*"
+  to = "https://memberportal.feedforward.ai/:splat"
+  status = 302
+  force = true
+  conditions = {Host = ["comforting-liger-51a2a4.netlify.app"]}
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

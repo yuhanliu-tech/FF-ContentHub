@@ -2,11 +2,25 @@
 # When you upload ONLY the frontend folder (drag-and-drop), use the config in frontend/netlify.toml instead.
 # Base directory is "frontend" so only the frontend is built.
 # Backend (Strapi) must be deployed elsewhere (e.g. Railway, Render).
-
+# Do NOT set publish when using @netlify/plugin-nextjs – the plugin must control
+# the deploy output so /_next/static (CSS/JS chunks) are served correctly.
 [build]
   base    = "frontend"
   command = "npm ci && npm run build"
-  publish = "frontend/.next"
+
+# If requests hit /next/ instead of /_next/ (e.g. proxy stripping underscore), serve _next content
+[[redirects]]
+  from = "/next/*"
+  to = "/_next/:splat"
+  status = 200
+
+# Redirect old default Netlify URL to custom domain so bookmarks and old links work
+[[redirects]]
+  from = "/*"
+  to = "https://memberportal.feedforward.ai/:splat"
+  status = 302
+  force = true
+  conditions = {Host = ["comforting-liger-51a2a4.netlify.app"]}
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
