@@ -183,59 +183,29 @@ const ExpertNetPage = () => {
                     {/* Gradient scrim */}
                     <div className="expert-card__scrim" />
 
-                    {/* Round avatar – upper left */}
+                    {/* Logo – upper left (static asset so it always shows in production) */}
                     <div
                       style={{
                         position: "absolute",
                         top: "0.5rem",
                         left: "0.5rem",
                         zIndex: 30,
-                        pointerEvents: "auto",
-                      }}
-                      onMouseEnter={(e) => {
-                        const el = e.currentTarget.querySelector("[data-avatar]") as HTMLElement;
-                        if (el) el.style.animation = "avatarSpin 0.6s ease forwards";
-                      }}
-                      onMouseLeave={(e) => {
-                        const el = e.currentTarget.querySelector("[data-avatar]") as HTMLElement;
-                        if (el) el.style.animation = "none";
+                        pointerEvents: "none",
                       }}
                     >
-                      {bio.photo ? (
-                        <img
-                          data-avatar
-                          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bio.photo.url}`}
-                          alt={bio.name}
-                          style={{
-                            width: "2.5rem",
-                            height: "2.5rem",
-                            borderRadius: "50%",
-                            objectFit: "cover",
-                            border: "2px solid #e9a059",
-                            outline: "2px solid rgba(255,255,255,0.8)",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                            display: "block",
-                          }}
-                        />
-                      ) : (
-                        <div
-                          data-avatar
-                          style={{
-                            width: "2.5rem",
-                            height: "2.5rem",
-                            borderRadius: "50%",
-                            border: "2px solid #e9a059",
-                            outline: "2px solid rgba(255,255,255,0.8)",
-                            boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            background: "#536c89",
-                          }}
-                        >
-                          <FaUser style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.85rem" }} />
-                        </div>
-                      )}
+                      <img
+                        src="/logo.png"
+                        alt=""
+                        role="presentation"
+                        style={{
+                          height: "1.5rem",
+                          width: "auto",
+                          maxWidth: "2.5rem",
+                          objectFit: "contain",
+                          filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.4))",
+                          display: "block",
+                        }}
+                      />
                     </div>
 
                     {/* Content overlay */}
