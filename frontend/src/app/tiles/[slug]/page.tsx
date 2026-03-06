@@ -1,29 +1,68 @@
 // app/tiles/[slug]/page.tsx
 "use client";
 import { useEffect, useState, use, useMemo } from "react";
-import { getTileBySlug } from "../../../../lib/api";
+import { getTileBySlug, getAllDocuments } from "../../../../lib/api";
 import { useRouter } from "next/navigation";
-import { Tile, ListItem, Doc } from "@/../lib/types";
+import { Tile, ListItem, Doc, Document } from "@/../lib/types";
 import { FaDownload, FaExternalLinkAlt, FaSearch, FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 import Loader from "@/components/Loader";
 import BackToHome from "@/components/BackToHome";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { MEMBER_SESSIONS_TILE_SLUG, MEMBER_SESSION_GROUPS } from "../member-sessions-config";
 import {
-  MEMBER_SESSIONS_TILE_SLUG,
-  MEMBER_SESSION_GROUPS,
-  assignToThematicGroup,
-} from "../member-sessions-config";
+  CANONICAL_MEMBER_SESSIONS,
+  type CanonicalSectionSession,
+} from "../../documents/canonical-member-sessions";
+
+type TocEntry = { id: string; title: string; slug: string };
+
+function getSessionTitleFromDoc(title: string): string {
+  const afterReadout = title.match(/call\s*readout[_:\s]+(.+)$/i);
+  if (afterReadout?.[1]) return afterReadout[1].trim();
+  return title;
+}
+
+function normalizeForMatch(s: string): string {
+  return s
+    .toLowerCase()
+    .replace(/[\u2018\u2019\u201C\u201D]/g, "'")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function docMatchesCanonical(docTitle: string, canonical: CanonicalSectionSession): boolean {
+  const docSession = getSessionTitleFromDoc(docTitle);
+  const a = normalizeForMatch(canonical.title);
+  const b = normalizeForMatch(docSession);
+  return b.includes(a) || a.includes(b);
+}
+
+function listItemMatchesCanonical(itemTitle: string, canonical: CanonicalSectionSession): boolean {
+  const a = normalizeForMatch(canonical.title);
+  const b = normalizeForMatch(itemTitle);
+  return b.includes(a) || a.includes(b);
+}
+
+function isPdfDocument(doc: Document): boolean {
+  const mime = (doc.file?.mime ?? doc.file?.mimeType ?? "").toString().toLowerCase();
+  if (!mime) return false;
+  if (mime.includes("audio") || mime.includes("mpeg") || mime.includes("mp3") || mime.includes("ogg") || mime.includes("wav")) return false;
+  return mime.includes("pdf");
+}
 
 const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
   const { slug } = use(params);
   const [tile, setTile] = useState<Tile | null>(null);
+  const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [activeSection, setActiveSection] = useState<string>("");
   const router = useRouter();
+
+  const isMemberSessions = slug?.toLowerCase() === MEMBER_SESSIONS_TILE_SLUG;
 
   useEffect(() => {
     const fetchTile = async () => {
@@ -32,7 +71,11 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
           const fetchedTile = await getTileBySlug(slug);
           setTile(fetchedTile);
         } catch (err) {
-          setError("Error fetching tile.");
+          // For member-sessions we always show the canonical list; tile is only for optional links
+          if (slug?.toLowerCase() !== MEMBER_SESSIONS_TILE_SLUG) {
+            setError("Error fetching tile.");
+          }
+          setTile(null);
           console.log(err);
         } finally {
           setLoading(false);
@@ -42,6 +85,19 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
 
     fetchTile();
   }, [slug]);
+
+  useEffect(() => {
+    if (!isMemberSessions) return;
+    const fetchDocuments = async () => {
+      try {
+        const data = await getAllDocuments();
+        setDocuments(data.documents.filter(isPdfDocument));
+      } catch {
+        // Non-blocking; list still shows, just without PDF links
+      }
+    };
+    fetchDocuments();
+  }, [isMemberSessions]);
 
   const filteredAndSortedListItems = useMemo(() => {
     if (!tile?.list_items) return [];
@@ -68,82 +124,109 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
     return sorted;
   }, [tile?.list_items, searchQuery, sortOrder]);
 
-  const isMemberSessions = slug?.toLowerCase() === MEMBER_SESSIONS_TILE_SLUG;
+  /** When member-sessions: map canonical session → Strapi document (for View/Download). */
+  const canonicalToDocument = useMemo(() => {
+    if (!isMemberSessions) return new Map<CanonicalSectionSession, Document | null>();
+    const map = new Map<CanonicalSectionSession, Document | null>();
+    const usedDocIds = new Set<string | number>();
+    for (const session of CANONICAL_MEMBER_SESSIONS) {
+      const matched = documents.find(
+        (doc) => !usedDocIds.has(doc.id) && docMatchesCanonical(doc.title, session)
+      );
+      if (matched) {
+        map.set(session, matched);
+        usedDocIds.add(matched.id);
+      } else {
+        map.set(session, null);
+      }
+    }
+    return map;
+  }, [isMemberSessions, documents]);
 
-  const groupedByTheme = useMemo(() => {
-    if (!isMemberSessions || !tile?.list_items) return null;
-    const items = filteredAndSortedListItems;
+  /** When member-sessions: map canonical session → list item (for link/attachment). */
+  const canonicalToListItem = useMemo(() => {
+    if (!isMemberSessions || !tile?.list_items) return new Map<CanonicalSectionSession, ListItem | null>();
+    const map = new Map<CanonicalSectionSession, ListItem | null>();
+    const usedItemIds = new Set<number>();
+    for (const session of CANONICAL_MEMBER_SESSIONS) {
+      const matched = tile.list_items.find(
+        (item) => !usedItemIds.has(item.id) && listItemMatchesCanonical(item.title, session)
+      );
+      if (matched) {
+        map.set(session, matched);
+        usedItemIds.add(matched.id);
+      } else {
+        map.set(session, null);
+      }
+    }
+    return map;
+  }, [isMemberSessions, tile?.list_items]);
+
+  /** Filter canonical sessions by search. */
+  const filteredCanonicalSessions = useMemo(() => {
+    if (!isMemberSessions) return [];
+    if (!searchQuery.trim()) return CANONICAL_MEMBER_SESSIONS;
+    const q = searchQuery.toLowerCase().trim();
+    const groupMatches = (groupId: string, subGroupId?: string) => {
+      const group = MEMBER_SESSION_GROUPS.find((g) => g.id === groupId);
+      if (!group) return false;
+      if (group.title.toLowerCase().includes(q)) return true;
+      if (group.description?.toLowerCase().includes(q)) return true;
+      if (subGroupId) {
+        const sg = group.subGroups?.find((s) => s.id === subGroupId);
+        if (sg?.title.toLowerCase().includes(q)) return true;
+      }
+      return false;
+    };
+    return CANONICAL_MEMBER_SESSIONS.filter(
+      (s) => s.title.toLowerCase().includes(q) || groupMatches(s.groupId, s.subGroupId)
+    );
+  }, [isMemberSessions, searchQuery]);
+
+  /** Group filtered canonical sessions by groupId / subGroupId. */
+  const groupedCanonical = useMemo(() => {
+    if (!isMemberSessions) return { byGroup: {} };
     const byGroup: Record<
       string,
-      { subGroups?: Record<string, { title: string; items: ListItem[] }>; directItems?: ListItem[] }
+      {
+        subGroups?: Record<string, { title: string; sessions: CanonicalSectionSession[] }>;
+        directSessions?: CanonicalSectionSession[];
+      }
     > = {};
-    const other: ListItem[] = [];
-
-    for (const item of items) {
-      const assigned = assignToThematicGroup(item.title);
-      if (!assigned) {
-        other.push(item);
-        continue;
-      }
-      const group = MEMBER_SESSION_GROUPS.find((g) => g.id === assigned.groupId);
-      if (!group) {
-        other.push(item);
-        continue;
-      }
-      if (!byGroup[assigned.groupId]) {
+    for (const session of filteredCanonicalSessions) {
+      const group = MEMBER_SESSION_GROUPS.find((g) => g.id === session.groupId);
+      if (!group) continue;
+      if (!byGroup[session.groupId]) {
         if (group.subGroups) {
-          byGroup[assigned.groupId] = {
+          byGroup[session.groupId] = {
             subGroups: Object.fromEntries(
-              group.subGroups.map((sg) => [sg.id, { title: sg.title, items: [] }])
+              group.subGroups.map((sg) => [sg.id, { title: sg.title, sessions: [] }])
             ),
           };
         } else {
-          byGroup[assigned.groupId] = { directItems: [] };
+          byGroup[session.groupId] = { directSessions: [] };
         }
       }
-      const bucket = byGroup[assigned.groupId];
-      if (assigned.subGroupId && bucket.subGroups?.[assigned.subGroupId]) {
-        bucket.subGroups[assigned.subGroupId].items.push(item);
-      } else if (bucket.directItems) {
-        bucket.directItems.push(item);
+      const bucket = byGroup[session.groupId];
+      if (session.subGroupId && bucket.subGroups?.[session.subGroupId]) {
+        bucket.subGroups[session.subGroupId].sessions.push(session);
+      } else if (bucket.directSessions) {
+        bucket.directSessions.push(session);
       }
     }
-
-    const sortByDateDesc = (a: ListItem, b: ListItem) => {
-      if (!a.date && !b.date) return 0;
-      if (!a.date) return 1;
-      if (!b.date) return -1;
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
-    };
-    for (const key of Object.keys(byGroup)) {
-      const b = byGroup[key];
-      if (b.directItems) b.directItems.sort(sortByDateDesc);
-      if (b.subGroups) {
-        for (const subId of Object.keys(b.subGroups)) {
-          b.subGroups[subId].items.sort(sortByDateDesc);
-        }
-      }
-    }
-    other.sort(sortByDateDesc);
-    return { byGroup, other };
-  }, [isMemberSessions, tile?.list_items, filteredAndSortedListItems]);
+    return { byGroup };
+  }, [isMemberSessions, filteredCanonicalSessions]);
 
   const memberSessionsToc = useMemo(() => {
-    if (!groupedByTheme) return [];
-    const groupEntries = MEMBER_SESSION_GROUPS.filter((g) => {
-      const b = groupedByTheme.byGroup[g.id];
+    if (!isMemberSessions) return [];
+    return MEMBER_SESSION_GROUPS.filter((g) => {
+      const b = groupedCanonical.byGroup[g.id];
       if (!b) return false;
-      if (b.directItems?.length) return true;
-      if (b.subGroups) {
-        return Object.values(b.subGroups).some((sg) => sg.items.length > 0);
-      }
+      if (b.directSessions?.length) return true;
+      if (b.subGroups) return Object.values(b.subGroups).some((sg) => sg.sessions.length > 0);
       return false;
     }).map((g) => ({ id: g.id, title: `${g.emoji} ${g.title}`, slug: g.id }));
-    if (groupedByTheme.other.length > 0) {
-      groupEntries.push({ id: "other", title: "Other sessions", slug: "other" });
-    }
-    return groupEntries;
-  }, [groupedByTheme]);
+  }, [isMemberSessions, groupedCanonical]);
 
   const tableOfContents = useMemo(() => {
     if (!tile?.docs) return [];
@@ -195,9 +278,11 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
       </div>
     );
   if (error) return <p className="max-w-screen-md mx-auto p-8 text-red-500">Error: {error}</p>;
-  if (!tile) return <p className="max-w-screen-md mx-auto p-8 text-subtitle">No tile found.</p>;
+  // Member sessions page always shows the canonical list (document order); tile is optional for links
+  if (!tile && !isMemberSessions) return <p className="max-w-screen-md mx-auto p-8 text-subtitle">No tile found.</p>;
 
-  const tocEntries = isMemberSessions && memberSessionsToc.length > 0 ? memberSessionsToc : tableOfContents;
+  const tocEntries: TocEntry[] =
+    isMemberSessions && memberSessionsToc.length > 0 ? memberSessionsToc : tableOfContents;
 
   function formatSessionDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-US", {
@@ -205,6 +290,42 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
       day: "numeric",
       year: "numeric",
     });
+  }
+
+  /** Render one canonical session row (document date + title, optional View/Download or link). */
+  function renderCanonicalSessionItem(session: CanonicalSectionSession, idx: number, subId?: string) {
+    const doc = canonicalToDocument.get(session);
+    const listItem = canonicalToListItem.get(session);
+    const fileUrl = doc?.file?.url && `${process.env.NEXT_PUBLIC_STRAPI_URL}${doc.file.url}`;
+    const linkUrl = listItem?.link ?? (listItem?.attachment?.url ? `${process.env.NEXT_PUBLIC_STRAPI_URL}${listItem.attachment.url}` : null);
+    const showLinkTbd = session.linkTbd && !fileUrl && !linkUrl;
+    const key = subId ? `${session.groupId}-${subId}-${idx}` : `${session.groupId}-${idx}`;
+    return (
+      <li
+        key={key}
+        className="flex flex-nowrap items-center gap-x-2 py-1.5 border-b border-gray-100 last:border-b-0"
+      >
+        <span className="text-base text-primary font-plex shrink-0">
+          {session.date} — {session.title}
+          {showLinkTbd && <span className="text-subtitle font-normal"> [link TBD]</span>}
+        </span>
+        {fileUrl && (
+          <span className="flex shrink-0 items-center gap-2">
+            <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-brand-blue hover:text-brand-orange text-xs font-medium">
+              <FaExternalLinkAlt size={10} /> View
+            </a>
+            <a href={fileUrl} download className="inline-flex items-center gap-1 text-brand-orange hover:opacity-85 text-xs font-medium">
+              <FaDownload size={10} /> Download
+            </a>
+          </span>
+        )}
+        {!fileUrl && linkUrl && (
+          <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-brand-blue hover:text-brand-orange text-xs font-medium shrink-0">
+            <FaExternalLinkAlt size={10} /> View
+          </a>
+        )}
+      </li>
+    );
   }
 
   function renderSessionItem(item: ListItem) {
@@ -250,7 +371,7 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
             </h3>
             <nav className="space-y-1">
               {tocEntries.map((item) => {
-                const itemSlug = "slug" in item ? item.slug : item.id;
+                const itemSlug = item.slug ?? item.id;
                 return (
                   <button
                     key={itemSlug}
@@ -274,7 +395,7 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
       <div className="max-w-3xl mx-auto">
         <BackToHome />
 
-        {isMemberSessions && groupedByTheme ? (
+        {isMemberSessions ? (
           <>
             <h1 className="text-3xl leading-snug font-bold text-brand-blue font-didot">
               Feedforward Member Sessions
@@ -286,13 +407,12 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
               Last updated: February 2026 &nbsp;&bull;&nbsp; Sessions from Jan 2025 – Feb 2026
             </p>
 
-            {/* Search for member sessions */}
             <div className="mt-6 mb-4">
-              <div className="relative max-w-xs">
+              <div className="relative max-w-xl">
                 <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
                 <input
                   type="text"
-                  placeholder="Search sessions..."
+                  placeholder="Search by title or section (e.g. State of AI, Model Updates)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="search-input pl-11 pr-4 py-2.5 text-sm text-primary font-plex w-full"
@@ -300,65 +420,56 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
               </div>
             </div>
 
-            <div className="space-y-10 mt-8">
-              {MEMBER_SESSION_GROUPS.map((group) => {
-                const bucket = groupedByTheme.byGroup[group.id];
-                if (!bucket) return null;
-                const hasDirect = (bucket.directItems?.length ?? 0) > 0;
-                const hasSubGroups = bucket.subGroups && Object.values(bucket.subGroups).some((sg) => sg.items.length > 0);
-                if (!hasDirect && !hasSubGroups) return null;
+            {filteredCanonicalSessions.length === 0 ? (
+              <div className="text-subtitle py-12 text-center font-plex">
+                {searchQuery ? "No sessions match your search" : "No sessions found"}
+              </div>
+            ) : (
+              <div className="space-y-10 mt-8">
+                {MEMBER_SESSION_GROUPS.map((group) => {
+                  const bucket = groupedCanonical.byGroup[group.id];
+                  if (!bucket) return null;
+                  const hasDirect = (bucket.directSessions?.length ?? 0) > 0;
+                  const hasSubGroups = bucket.subGroups && Object.values(bucket.subGroups).some((sg) => sg.sessions.length > 0);
+                  if (!hasDirect && !hasSubGroups) return null;
 
-                return (
-                  <section
-                    key={group.id}
-                    id={group.id}
-                    className="scroll-mt-20"
-                  >
-                    <h2 className="text-xl font-bold text-brand-blue font-didot mb-1">
-                      {group.emoji} {group.title}
-                    </h2>
-                    {group.description && (
-<p className="text-base text-subtitle font-plex mb-4 max-w-2xl">
-                      {group.description}
-                    </p>
-                    )}
-                    {bucket.subGroups ? (
-                      <div className="space-y-5">
-                        {Object.entries(bucket.subGroups)
-                          .filter(([, sg]) => sg.items.length > 0)
-                          .map(([subId, sg]) => (
-                            <div key={subId}>
-                              <h3 className="text-base font-semibold text-brand-blue font-didot mb-2">
-                                {sg.title}
-                              </h3>
-                              <div className="space-y-0 pl-0">
-                                {sg.items.map((item) => renderSessionItem(item))}
+                  return (
+                    <section key={group.id} id={group.id} className="scroll-mt-20">
+                      <h2 className="text-xl font-bold text-brand-blue font-didot mb-1">
+                        {group.emoji} {group.title}
+                      </h2>
+                      {group.description && (
+                        <p className="text-base text-subtitle font-plex mb-4 max-w-2xl">
+                          {group.description}
+                        </p>
+                      )}
+                      {bucket.subGroups ? (
+                        <div className="space-y-5">
+                          {Object.entries(bucket.subGroups)
+                            .filter(([, sg]) => sg.sessions.length > 0)
+                            .map(([subId, sg]) => (
+                              <div key={subId}>
+                                <h3 className="text-base font-semibold text-brand-blue font-didot mb-2">
+                                  {sg.title}
+                                </h3>
+                                <ul className="space-y-0 list-none pl-0">
+                                  {sg.sessions.map((session, idx) => renderCanonicalSessionItem(session, idx, subId))}
+                                </ul>
                               </div>
-                            </div>
-                          ))}
-                      </div>
-                    ) : (
-                      <div className="space-y-0">
-                        {bucket.directItems?.map((item) => renderSessionItem(item))}
-                      </div>
-                    )}
-                  </section>
-                );
-              })}
-
-              {groupedByTheme.other.length > 0 && (
-                <section id="other" className="scroll-mt-20">
-                  <h2 className="text-xl font-bold text-brand-blue font-didot mb-4">
-                    Other sessions
-                  </h2>
-                  <div className="space-y-0">
-                    {groupedByTheme.other.map((item) => renderSessionItem(item))}
-                  </div>
-                </section>
-              )}
-            </div>
+                            ))}
+                        </div>
+                      ) : (
+                        <ul className="space-y-0 list-none pl-0">
+                          {bucket.directSessions?.map((session, idx) => renderCanonicalSessionItem(session, idx))}
+                        </ul>
+                      )}
+                    </section>
+                  );
+                })}
+              </div>
+            )}
           </>
-        ) : (
+        ) : tile ? (
           <>
             <h1 className="text-3xl leading-snug capitalize font-bold text-brand-blue font-didot">
               {tile.title}
@@ -551,7 +662,7 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
           </div>
         )}
           </>
-        )}
+        ) : null}
       </div>
     </div>
   );
