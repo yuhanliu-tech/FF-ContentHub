@@ -11,10 +11,13 @@ export const api: AxiosInstance = axios.create({
   baseURL: strapiUrl,
 });
 
-// Add auth token to requests if available
+// Fake token used by "Use test user" in dev; Strapi would reject it, so don't send it.
+const DEV_FAKE_JWT = "dev-jwt";
+
+// Add auth token to requests if available (skip fake dev token so Strapi treats request as public)
 api.interceptors.request.use((config) => {
   const token = getAuthToken();
-  if (token) {
+  if (token && token !== DEV_FAKE_JWT) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -26,8 +29,9 @@ export const getAllTiles = async (searchQuery: string = "") => {
     const searchFilter = searchQuery
       ? `&filters[title][$containsi]=${searchQuery}`
       : "";
+    // Strapi v5 populate syntax: use nested object format instead of array indices
     const response = await api.get(
-      `api/tiles?populate[0]=cover&populate[1]=list_items.attachment&populate[2]=docs${searchFilter}`
+      `api/tiles?populate[cover]=true&populate[list_items][populate][attachment]=true&populate[docs]=true${searchFilter}`
     );
     return {
       tiles: response.data.data,
@@ -41,8 +45,9 @@ export const getAllTiles = async (searchQuery: string = "") => {
 // Get tile by slug
 export const getTileBySlug = async (slug: string) => {
   try {
+    // Strapi v5 populate syntax: use nested object format instead of array indices
     const response = await api.get(
-      `api/tiles?filters[slug]=${slug}&populate[0]=cover&populate[1]=list_items.attachment&populate[2]=docs`
+      `api/tiles?filters[slug]=${slug}&populate[cover]=true&populate[list_items][populate][attachment]=true&populate[docs]=true&populate[recommendations]=true`
     ); // Fetch a single tile using the slug parameter with proper nested population
     if (response.data.data.length > 0) {
       // If tile exists
