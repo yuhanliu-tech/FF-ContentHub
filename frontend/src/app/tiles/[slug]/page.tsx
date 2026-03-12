@@ -3,7 +3,8 @@
 import { useEffect, useState, use, useMemo } from "react";
 import { getTileBySlug, getAllDocuments } from "../../../../lib/api";
 import { useRouter } from "next/navigation";
-import { Tile, ListItem, Doc, Document, Recommendation, type RecommendationCategory } from "@/../lib/types";
+import { Tile, ListItem, Doc, Document } from "@/../lib/types";
+// Recommendation, type RecommendationCategory — commented out with recommendations/tabs
 import { FaDownload, FaExternalLinkAlt, FaSearch, FaSortAmountDown, FaSortAmountUp } from "react-icons/fa";
 import Loader from "@/components/Loader";
 import BackToHome from "@/components/BackToHome";
@@ -60,6 +61,8 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [activeSection, setActiveSection] = useState<string>("");
+  // activeContentTab (recommendations/tabs) — commented out; only list items shown
+  // const [activeContentTab, setActiveContentTab] = useState<string>("");
   const router = useRouter();
 
   const isMemberSessions = slug?.toLowerCase() === MEMBER_SESSIONS_TILE_SLUG;
@@ -239,6 +242,7 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
       }));
   }, [tile?.docs]);
 
+  /* ——— Recommendations and tabs (commented out; client reverted to list items only) ———
   const RECOMMENDATION_CATEGORY_ORDER: RecommendationCategory[] = [
     "What to read",
     "What to watch",
@@ -260,6 +264,49 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
       items: groups.get(category) ?? [],
     })).filter((g) => g.items.length > 0);
   }, [tile?.recommendations]);
+
+  const additionalContentTabs = useMemo(() => {
+    const tabs: { id: string; label: string }[] = [];
+    if (recommendationsByCategory.length > 0) {
+      recommendationsByCategory.forEach(({ category }) => {
+        tabs.push({ id: category, label: category });
+      });
+    }
+    if (tile?.list_items && tile.list_items.length > 0) {
+      tabs.push({ id: "More", label: "More" });
+    }
+    return tabs;
+  }, [recommendationsByCategory, tile?.list_items]);
+
+  useEffect(() => {
+    if (additionalContentTabs.length === 0) {
+      setActiveContentTab("");
+      return;
+    }
+    const ids = new Set(additionalContentTabs.map((t) => t.id));
+    if (!activeContentTab || !ids.has(activeContentTab)) {
+      setActiveContentTab(additionalContentTabs[0].id);
+    }
+  }, [additionalContentTabs, activeContentTab]);
+
+  useEffect(() => {
+    setSearchQuery("");
+  }, [activeContentTab]);
+
+  const filteredRecommendationsForActiveTab = useMemo(() => {
+    if (activeContentTab === "More") return [];
+    const group = recommendationsByCategory.find((g) => g.category === activeContentTab);
+    if (!group?.items.length) return [];
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return group.items;
+    return group.items.filter(
+      (rec) =>
+        rec.title.toLowerCase().includes(q) ||
+        (rec.description?.toLowerCase().includes(q) ?? false) ||
+        (rec.recommended_by?.toLowerCase().includes(q) ?? false)
+    );
+  }, [activeContentTab, recommendationsByCategory, searchQuery]);
+  ——— end commented recommendations/tabs ——— */
 
   const scrollToSection = (slug: string) => {
     const element = document.getElementById(slug);
@@ -558,164 +605,114 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
           </div>
         )}
 
-        {/* Curated recommendations (What to read / watch / listen to / who to follow) */}
-        {recommendationsByCategory.length > 0 && (
-          <div className="mb-8 space-y-8 mt-6">
-            {recommendationsByCategory.map(({ category, items }) => (
-              <section key={category} className="border-b border-gray-200 last:border-b-0 pb-8 last:pb-0">
-                <h2 className="text-2xl font-bold text-brand-blue mb-4 font-didot scroll-mt-20">
-                  {category}
-                </h2>
-                <div className="space-y-4">
-                  {items.map((rec: Recommendation) => (
-                    <div
-                      key={rec.id}
-                      className="bg-white p-5 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
-                    >
-                      <h3 className="text-base font-semibold text-brand-blue mb-2 font-didot">
-                        {rec.title}
-                      </h3>
-                      {rec.description && (
-                        <div className="text-gray-800 text-base font-plex leading-relaxed whitespace-pre-line mb-2">
-                          {rec.description}
-                        </div>
-                      )}
-                      {rec.recommended_by && (
-                        <p className="text-subtitle text-sm font-plex mb-2">
-                          Recommended by {rec.recommended_by}
-                        </p>
-                      )}
-                      {rec.link && (
-                        <a
-                          href={rec.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-brand-blue hover:text-brand-orange transition-colors text-sm font-plex"
-                        >
-                          View link <FaExternalLinkAlt className="ml-1 text-xs" />
-                        </a>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </section>
-            ))}
-          </div>
-        )}
-
-        {/* List Items Section */}
+        {/* List items only (e.g. Additional content: 4 PDFs). Recommendations/tabs commented out above. */}
         {tile.list_items && tile.list_items.length > 0 && (
-          <div className="mb-8">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-5">
-              <div className="flex flex-col sm:flex-row gap-2">
-                {/* Search Input */}
-                <div className="relative">
-                  <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
-                  <input
-                    type="text"
-                    placeholder="Search items..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="search-input pl-11 pr-4 py-2.5 text-sm text-primary font-plex"
-                  />
-                </div>
-
-                {/* Sort Toggle */}
-                <button
-                  onClick={() => setSortOrder(prev => prev === "desc" ? "asc" : "desc")}
-                  className="inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-subtitle bg-white hover:bg-gray-50 transition-colors font-plex"
-                  title={`Sort by date (${sortOrder === "desc" ? "newest first" : "oldest first"})`}
-                >
-                  {sortOrder === "desc" ? <FaSortAmountDown className="mr-2" /> : <FaSortAmountUp className="mr-2" />}
-                  Date {sortOrder === "desc" ? "↓" : "↑"}
-                </button>
+          <div className="mb-8 mt-6">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-5">
+              <div className="relative flex-1 max-w-xl">
+                <FaSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm" />
+                <input
+                  type="text"
+                  placeholder="Search items..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="search-input pl-11 pr-4 py-2.5 text-sm text-primary font-plex w-full"
+                />
               </div>
+              <button
+                onClick={() => setSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
+                className="inline-flex items-center px-4 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-subtitle bg-white hover:bg-gray-50 transition-colors font-plex shrink-0"
+                title={`Sort by date (${sortOrder === "desc" ? "newest first" : "oldest first"})`}
+              >
+                {sortOrder === "desc" ? <FaSortAmountDown className="mr-2" /> : <FaSortAmountUp className="mr-2" />}
+                Date {sortOrder === "desc" ? "↓" : "↑"}
+              </button>
             </div>
 
             <div className="space-y-3">
               {filteredAndSortedListItems.length > 0 ? (
                 filteredAndSortedListItems.map((item: ListItem, itemIndex: number) => (
-                <div key={itemIndex} className="bg-white p-5 rounded-xl border border-gray-200 border-l-3 border-l-brand-orange hover:shadow-md transition-shadow">
-                  <h4 className="text-base font-semibold text-brand-blue mb-1 font-didot">{item.title}</h4>
+                  <div key={itemIndex} className="bg-white p-5 rounded-xl border border-gray-200 border-l-3 border-l-brand-orange hover:shadow-md transition-shadow">
+                    <h4 className="text-base font-semibold text-brand-blue mb-1 font-didot">{item.title}</h4>
 
-                  {item.date && (
-                    <p className="text-subtitle text-base mb-2 font-plex">
-                      {new Date(item.date).toLocaleDateString()}
-                    </p>
-                  )}
+                    {item.date && (
+                      <p className="text-subtitle text-base mb-2 font-plex">
+                        {new Date(item.date).toLocaleDateString()}
+                      </p>
+                    )}
 
-                  {item.link && (
-                    <a
-                      href={item.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-brand-blue hover:text-brand-orange transition-colors mb-2 text-base font-plex"
-                    >
-                      View Link <FaExternalLinkAlt className="ml-1 text-xs" />
-                    </a>
-                  )}
+                    {item.link && (
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-brand-blue hover:text-brand-orange transition-colors mb-2 text-base font-plex"
+                      >
+                        View Link <FaExternalLinkAlt className="ml-1 text-xs" />
+                      </a>
+                    )}
 
-                  {item.attachment?.url && (
-                    <div className="mt-3">
-                      {item.attachment.mime?.startsWith('image/') ? (
-                        <div>
-                          <img
-                            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.attachment.url}`}
-                            alt={item.attachment.alternativeText || item.title}
-                            className="max-w-full h-auto rounded-xl border border-gray-200 mb-2"
-                          />
-                          <a
-                            href={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.attachment.url}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center text-brand-blue hover:text-brand-orange transition-colors text-base font-plex"
-                          >
-                            Open Image <FaExternalLinkAlt className="ml-1 text-xs" />
-                          </a>
-                        </div>
-                      ) : (
-                        <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl">
-                          <div className="flex items-center justify-between">
-                            <div className="flex-1">
-                              <p className="text-base font-medium text-primary font-plex">
-                                {item.attachment.name || 'File Attachment'}
-                              </p>
-                              <p className="text-xs text-subtitle">
-                                {item.attachment.mime && (
-                                  <>
-                                    {item.attachment.mime.includes('pdf') && '📄 PDF Document'}
-                                    {item.attachment.mime.includes('powerpoint') && '📊 PowerPoint Presentation'}
-                                    {item.attachment.mime.includes('presentationml') && '📊 PowerPoint Presentation'}
-                                    {(item.attachment.mime.includes('word') || item.attachment.mime.includes('wordprocessing')) && '📝 Word Document'}
-                                    {item.attachment.mime.includes('excel') && '📈 Excel Spreadsheet'}
-                                    {item.attachment.mime.includes('sheet') && '📈 Excel Spreadsheet'}
-                                    {!item.attachment.mime.includes('pdf') &&
-                                     !item.attachment.mime.includes('powerpoint') &&
-                                     !item.attachment.mime.includes('presentationml') &&
-                                     !item.attachment.mime.includes('word') &&
-                                     !item.attachment.mime.includes('wordprocessing') &&
-                                     !item.attachment.mime.includes('document') &&
-                                     !item.attachment.mime.includes('excel') &&
-                                     !item.attachment.mime.includes('sheet') && '📎 File'}
-                                  </>
-                                )}
-                                {item.attachment.size && ` • ${Math.round(item.attachment.size / 1024)} KB`}
-                              </p>
-                            </div>
+                    {item.attachment?.url && (
+                      <div className="mt-3">
+                        {item.attachment.mime?.startsWith('image/') ? (
+                          <div>
+                            <img
+                              src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.attachment.url}`}
+                              alt={item.attachment.alternativeText || item.title}
+                              className="max-w-full h-auto rounded-xl border border-gray-200 mb-2"
+                            />
                             <a
                               href={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.attachment.url}`}
-                              download={item.attachment.name || undefined}
-                              className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-blue hover:bg-secondary-blue rounded-lg transition-colors font-plex"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-brand-blue hover:text-brand-orange transition-colors text-base font-plex"
                             >
-                              Download File <FaDownload className="ml-1 text-xs" />
+                              Open Image <FaExternalLinkAlt className="ml-1 text-xs" />
                             </a>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ))
+                        ) : (
+                          <div className="bg-gray-50 border border-gray-200 p-4 rounded-xl">
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1">
+                                <p className="text-base font-medium text-primary font-plex">
+                                  {item.attachment.name || 'File Attachment'}
+                                </p>
+                                <p className="text-xs text-subtitle">
+                                  {item.attachment.mime && (
+                                    <>
+                                      {item.attachment.mime.includes('pdf') && '📄 PDF Document'}
+                                      {item.attachment.mime.includes('powerpoint') && '📊 PowerPoint Presentation'}
+                                      {item.attachment.mime.includes('presentationml') && '📊 PowerPoint Presentation'}
+                                      {(item.attachment.mime.includes('word') || item.attachment.mime.includes('wordprocessing')) && '📝 Word Document'}
+                                      {item.attachment.mime.includes('excel') && '📈 Excel Spreadsheet'}
+                                      {item.attachment.mime.includes('sheet') && '📈 Excel Spreadsheet'}
+                                      {!item.attachment.mime.includes('pdf') &&
+                                       !item.attachment.mime.includes('powerpoint') &&
+                                       !item.attachment.mime.includes('presentationml') &&
+                                       !item.attachment.mime.includes('word') &&
+                                       !item.attachment.mime.includes('wordprocessing') &&
+                                       !item.attachment.mime.includes('document') &&
+                                       !item.attachment.mime.includes('excel') &&
+                                       !item.attachment.mime.includes('sheet') && '📎 File'}
+                                    </>
+                                  )}
+                                  {item.attachment.size && ` • ${Math.round(item.attachment.size / 1024)} KB`}
+                                </p>
+                              </div>
+                              <a
+                                href={`${process.env.NEXT_PUBLIC_STRAPI_URL}${item.attachment.url}`}
+                                download={item.attachment.name || undefined}
+                                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-brand-blue hover:bg-secondary-blue rounded-lg transition-colors font-plex"
+                              >
+                                Download File <FaDownload className="ml-1 text-xs" />
+                              </a>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ))
               ) : (
                 <div className="py-8 text-base text-subtitle font-plex">
                   {searchQuery ? (
@@ -728,6 +725,19 @@ const TilePage = ({ params }: { params: Promise<{ slug: string }> }) => {
             </div>
           </div>
         )}
+
+        {/* ——— Recommendations/tabs UI (commented out; uncomment to restore category tabs + More) ———
+        {additionalContentTabs.length > 0 && (
+          <div className="mb-8 mt-6">
+            <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-4 mb-6">
+              {additionalContentTabs.map((tab) => (
+                <button key={tab.id} onClick={() => setActiveContentTab(tab.id)} ...>{tab.label}</button>
+              ))}
+            </div>
+            ... search bar and tab content (More = list items, else = recommendations by category) ...
+          </div>
+        )}
+        ——— end commented ——— */}
           </>
         ) : null}
       </div>

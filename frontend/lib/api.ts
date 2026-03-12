@@ -47,7 +47,7 @@ export const getTileBySlug = async (slug: string) => {
   try {
     // Strapi v5 populate syntax: use nested object format instead of array indices
     const response = await api.get(
-      `api/tiles?filters[slug]=${slug}&populate[cover]=true&populate[list_items][populate][attachment]=true&populate[docs]=true&populate[recommendations]=true`
+      `api/tiles?filters[slug]=${slug}&populate[cover]=true&populate[list_items][populate][attachment]=true&populate[docs]=true` // &populate[recommendations]=true — commented out; only list items (e.g. 4 PDFs) shown on Additional content
     ); // Fetch a single tile using the slug parameter with proper nested population
     if (response.data.data.length > 0) {
       // If tile exists
