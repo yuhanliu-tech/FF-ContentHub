@@ -155,7 +155,7 @@ const ExpertNetPage = () => {
         {/* ─── Card Grid ────────────────────────────────────── */}
         {bios.length > 0 && (
           <section className="max-w-6xl mx-auto px-6 pb-16 md:pb-20">
-            <div className="grid gap-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 justify-items-center">
               {bios.map((bio: ExpertBio, idx: number) => {
                 const excerpt = plainText(bio.bio);
                 const slug = expertSlug(bio);
@@ -163,7 +163,7 @@ const ExpertNetPage = () => {
                 return (
                   <div
                     key={bio.id}
-                    className="expert-card card-animate-in group block relative"
+                    className="expert-card card-animate-in group block relative w-full max-w-[280px]"
                     style={
                       { "--delay": `${idx * 100}ms` } as React.CSSProperties
                     }
